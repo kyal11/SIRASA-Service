@@ -1,0 +1,65 @@
+import { PrismaClient, Role } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
+
+const prisma = new PrismaClient();
+
+async function main() {
+  // Data user awal
+  const users = [
+    {
+      email: 'superadmin@example.com',
+      nim: '0012345678',
+      password: await bcrypt.hash('superadmin123', 10), // Hash password
+      role: Role.superadmin,
+      phone_number: '08123456789',
+      name: 'Admin User',
+      verified: true,
+      image_url: null, // Atur path jika ada gambar default
+    },
+    {
+      email: 'admin@example.com',
+      nim: '00123325678',
+      password: await bcrypt.hash('admin123', 10), // Hash password
+      role: Role.admin,
+      phone_number: '08123456434',
+      name: 'Admin User',
+      verified: true,
+      image_url: null, // Atur path jika ada gambar default
+    },
+    {
+      email: 'user@example.com',
+      nim: '0012345679',
+      password: await bcrypt.hash('user123', 10), // Hash password
+      role: Role.user,
+      phone_number: '08123453213',
+      name: 'Regular User',
+      verified: true,
+      image_url: null, // Atur path jika ada gambar default
+    },
+  ];
+
+  for (const user of users) {
+    const existingUser = await prisma.users.findUnique({
+      where: { email: user.email },
+    });
+
+    if (!existingUser) {
+      await prisma.users.create({
+        data: user,
+      });
+      console.log(`User ${user.email} created successfully.`);
+    } else {
+      console.log(`User ${user.email} already exists.`);
+    }
+  }
+}
+
+main()
+  .then(async () => {
+    await prisma.$disconnect();
+  })
+  .catch(async (error) => {
+    console.error(error);
+    await prisma.$disconnect();
+    process.exit(1);
+  });

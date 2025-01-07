@@ -19,7 +19,7 @@ module.exports = {
   rules: {
     // Aturan yang lebih fleksibel
     'no-multiple-empty-lines': ['error', { max: 2, maxEOF: 1 }], // Maksimal 2 baris kosong
-    'no-trailing-spaces': 'error', // Tidak boleh ada spasi berlebih di akhir baris
+    'no-trailing-spaces': 'off', // Tidak boleh ada spasi berlebih di akhir baris
     'eol-last': ['error', 'always'], // Selalu tambahkan baris kosong di akhir file
 
     // Aturan TypeScript
