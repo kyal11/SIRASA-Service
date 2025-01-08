@@ -14,8 +14,8 @@ import {
   ParseUUIDPipe,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { CreateUserDto } from './dto/createUser.dto';
-import { UpdateUserDto } from './dto/updateUser.dto';
+import { CreateUserDto } from './validation/createUser.dto';
+import { UpdateUserDto } from './validation/updateUser.dto';
 import { UsersService } from './users.service';
 import { SetMetadata } from '@nestjs/common/decorators';
 import { ExceptionsFilter } from '../../common/filters/exception.filter';
