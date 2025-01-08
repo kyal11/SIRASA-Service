@@ -1,9 +1,11 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/config/prisma/prisma.service';
-import { CreateUserDto } from './userDto/createUser.dto';
+import { CreateUserDto } from './dto/createUser.dto';
 import * as bcrypt from 'bcrypt';
-import { UpdateUserDto } from './userDto/updateUser.dto';
+import { UpdateUserDto } from './dto/updateUser.dto';
 import { FileService } from 'src/config/upload/fileService';
+import { plainToClass } from 'class-transformer';
+import { UserEntity } from './entities/user.entity';
 
 @Injectable()
 export class UsersService {
@@ -13,15 +15,18 @@ export class UsersService {
   ) {}
 
   async getAllUsers() {
-    return await this.prisma.users.findMany();
+    const users = await this.prisma.users.findMany();
+
+    return users.map((user) => plainToClass(UserEntity, user));
   }
 
   async getUsersById(id: string) {
-    return await this.prisma.users.findUnique({
+    const user = await this.prisma.users.findUnique({
       where: {
         id: id,
       },
     });
+    return plainToClass(UserEntity, user);
   }
   async createUser(userData: CreateUserDto) {
     const { email, nim, password, role, ...anyData } = userData;
@@ -55,7 +60,7 @@ export class UsersService {
       },
     });
 
-    return newUser;
+    return plainToClass(UserEntity, newUser);
   }
 
   async updateUser(
@@ -97,7 +102,7 @@ export class UsersService {
       },
     });
 
-    return updatedUser;
+    return plainToClass(UserEntity, updatedUser);
   }
 
   async deleteUser(id: string) {
@@ -110,15 +115,14 @@ export class UsersService {
     if (!existingUser) {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
-    if (existingUser.image_url) {
-      await this.fileService.deleteProfileImage(existingUser.image_url);
-    }
-    this.prisma.users.delete({
+    await this.prisma.users.delete({
       where: {
         id: id,
       },
     });
-
+    if (existingUser.image_url !== null) {
+      await this.fileService.deleteProfileImage(existingUser.image_url);
+    }
     return 'User deleted successfully';
   }
 }

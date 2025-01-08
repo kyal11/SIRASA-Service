@@ -14,8 +14,8 @@ import {
   ParseUUIDPipe,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { CreateUserDto } from './userDto/createUser.dto';
-import { UpdateUserDto } from './userDto/updateUser.dto';
+import { CreateUserDto } from './dto/createUser.dto';
+import { UpdateUserDto } from './dto/updateUser.dto';
 import { UsersService } from './users.service';
 import { SetMetadata } from '@nestjs/common/decorators';
 import { ExceptionsFilter } from '../../common/filters/exception.filter';
@@ -46,7 +46,7 @@ export class UsersController {
 
   @Put(':id')
   @HttpCode(HttpStatus.OK)
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FileInterceptor('image_url'))
   @SetMetadata('message', 'User updated successfully')
   async updateUser(
     @Param('id', ParseUUIDPipe) id: string,
