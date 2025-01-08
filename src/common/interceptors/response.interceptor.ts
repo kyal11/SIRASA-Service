@@ -24,7 +24,7 @@ export class ResponseInterceptor implements NestInterceptor {
           message: message,
         };
         if (data !== null && data !== undefined) {
-          response.data = data; // Hanya tambahkan 'data' jika nilainya ada
+          response.data = data;
         }
         return response;
       }),

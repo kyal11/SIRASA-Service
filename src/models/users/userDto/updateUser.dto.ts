@@ -2,7 +2,6 @@ import { Role } from '@prisma/client';
 import {
   IsString,
   IsEmail,
-  IsNotEmpty,
   MinLength,
   IsBoolean,
   IsOptional,
@@ -11,22 +10,24 @@ import {
 
 export class UpdateUserDto {
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   name?: string;
 
   @IsEmail()
-  @IsNotEmpty()
+  @IsOptional()
   email?: string;
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   @MinLength(8)
   password?: string;
 
   @IsString()
+  @IsOptional()
   nim?: string;
 
   @IsString()
+  @IsOptional()
   phone_number?: string;
 
   @IsBoolean()
