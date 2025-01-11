@@ -15,12 +15,13 @@ export class AuthEntity {
   updated_at: Date;
 
   @Expose()
-  loginResponse(jwtToken: string): object {
+  loginResponse(jwtToken: string, refreshToken: string): object {
     return {
       email: this.email,
       nim: this.nim,
       name: this.name,
       token: jwtToken,
+      refresh_token: refreshToken,
     };
   }
 

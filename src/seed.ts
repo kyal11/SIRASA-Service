@@ -4,37 +4,36 @@ import * as bcrypt from 'bcrypt';
 const prisma = new PrismaClient();
 
 async function main() {
-  // Data user awal
   const users = [
     {
       email: 'superadmin@example.com',
       nim: '0012345678',
-      password: await bcrypt.hash('superadmin123', 10), // Hash password
+      password: await bcrypt.hash('superadmin123', 10),
       role: Role.superadmin,
       phone_number: '08123456789',
       name: 'Admin User',
       verified: true,
-      image_url: null, // Atur path jika ada gambar default
+      image_url: null,
     },
     {
       email: 'admin@example.com',
       nim: '00123325678',
-      password: await bcrypt.hash('admin123', 10), // Hash password
+      password: await bcrypt.hash('admin123', 10),
       role: Role.admin,
       phone_number: '08123456434',
       name: 'Admin User',
       verified: true,
-      image_url: null, // Atur path jika ada gambar default
+      image_url: null,
     },
     {
       email: 'user@example.com',
       nim: '0012345679',
-      password: await bcrypt.hash('user123', 10), // Hash password
+      password: await bcrypt.hash('user123', 10),
       role: Role.user,
       phone_number: '08123453213',
       name: 'Regular User',
       verified: true,
-      image_url: null, // Atur path jika ada gambar default
+      image_url: null,
     },
   ];
 
