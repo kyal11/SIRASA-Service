@@ -14,13 +14,13 @@ export class UsersService {
     private readonly fileService: FileService,
   ) {}
 
-  async getAllUsers() {
+  async getAllUsers(): Promise<UserEntity[]> {
     const users = await this.prisma.users.findMany();
 
     return users.map((user) => plainToClass(UserEntity, user));
   }
 
-  async getUsersById(id: string) {
+  async getUsersById(id: string): Promise<UserEntity> {
     const user = await this.prisma.users.findUnique({
       where: {
         id: id,
@@ -28,7 +28,7 @@ export class UsersService {
     });
     return plainToClass(UserEntity, user);
   }
-  async createUser(userData: CreateUserDto) {
+  async createUser(userData: CreateUserDto): Promise<UserEntity> {
     const { email, nim, password, role, ...anyData } = userData;
 
     const existingUserByEmail = await this.prisma.users.findUnique({
@@ -67,7 +67,7 @@ export class UsersService {
     id: string,
     userData: UpdateUserDto,
     file?: Express.Multer.File,
-  ) {
+  ): Promise<UserEntity> {
     const { password, ...anyData } = userData;
 
     const existingUser = await this.prisma.users.findUnique({
@@ -105,7 +105,7 @@ export class UsersService {
     return plainToClass(UserEntity, updatedUser);
   }
 
-  async deleteUser(id: string) {
+  async deleteUser(id: string): Promise<string> {
     const existingUser = await this.prisma.users.findUnique({
       where: {
         id: id,

@@ -9,9 +9,11 @@ import { AuthController } from './features/authentication/auth.controller';
 import { AuthService } from './features/authentication/auth.service';
 import { AuthModule } from './features/authentication/auth.module';
 import { JwtStrategy } from './common/jwt/jwtStrategy';
+import { RedisModule } from './config/redis/redis.module';
+import { RedisService } from './config/redis/redis.service';
 
 @Module({
-  imports: [UsersModule, AuthModule],
+  imports: [UsersModule, AuthModule, RedisModule],
   controllers: [AppController, AuthController],
   providers: [
     AppService,
@@ -20,6 +22,7 @@ import { JwtStrategy } from './common/jwt/jwtStrategy';
     FileService,
     AuthService,
     JwtStrategy,
+    RedisService,
   ],
 })
 export class AppModule {}
