@@ -11,6 +11,7 @@ import { AuthModule } from './features/authentication/auth.module';
 import { JwtStrategy } from './common/jwt/jwtStrategy';
 import { RedisModule } from './config/redis/redis.module';
 import { RedisService } from './config/redis/redis.service';
+import { EmailService } from './config/email/email.service';
 
 @Module({
   imports: [UsersModule, AuthModule, RedisModule],
@@ -23,6 +24,7 @@ import { RedisService } from './config/redis/redis.service';
     AuthService,
     JwtStrategy,
     RedisService,
+    EmailService,
   ],
 })
 export class AppModule {}

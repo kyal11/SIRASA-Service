@@ -15,7 +15,6 @@ async function bootstrap() {
   app.useGlobalInterceptors(new ResponseInterceptor(reflector));
   app.useGlobalFilters(new ExceptionsFilter());
   app.use('/uploads', express.static(join(__dirname, '..', 'uploads')));
-
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();

@@ -5,6 +5,7 @@ import {
   Post,
   SetMetadata,
   Body,
+  Req,
   UseFilters,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
@@ -29,5 +30,29 @@ export class AuthController {
   @SetMetadata('message', 'User logged in successfully')
   async login(@Body() loginDto: LoginDto) {
     return await this.AuthService.login(loginDto);
+  }
+
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  @SetMetadata('message', 'User logged out successfully')
+  async logout(@Req() req: Request) {
+    const token = req.headers['authorization']?.split(' ')[1];
+    return await this.AuthService.logout(token);
+  }
+
+  @Post('refresh-token')
+  @HttpCode(HttpStatus.OK)
+  @SetMetadata('message', 'Token refreshed successfully')
+  async refreshToken(@Req() req: Request) {
+    const token = req.headers['authorization']?.split(' ')[1];
+    return await this.AuthService.refreshToken(token);
+  }
+
+  @Post('send-email-reset-password')
+  @HttpCode(HttpStatus.OK)
+  @SetMetadata('message', 'Email reset password succes to sending')
+  async sendEmailResetPassword(@Body() body: { email: string }) {
+    const { email } = body;
+    return await this.AuthService.sendEmailResetPassword(email);
   }
 }
