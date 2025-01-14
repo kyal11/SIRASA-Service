@@ -12,6 +12,7 @@ import {
   HttpCode,
   HttpStatus,
   ParseUUIDPipe,
+  Query,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateUserDto } from './validation/createUser.dto';
@@ -19,6 +20,8 @@ import { UpdateUserDto } from './validation/updateUser.dto';
 import { UsersService } from './users.service';
 import { SetMetadata } from '@nestjs/common/decorators';
 import { ExceptionsFilter } from '../../common/filters/exception.filter';
+import { UserEntity } from './serialization/user.entity';
+import { PaginatedOutputDto } from 'src/common/paginate/paginatedOutput.dto';
 
 @Controller('users')
 @UseFilters(ExceptionsFilter)
@@ -31,6 +34,15 @@ export class UsersController {
     return await this.usersService.getAllUsers();
   }
 
+  @Get('paginate')
+  async getPaginatedUsers(
+    @Query('page') page: string = '1',
+    @Query('perPage') perPage: string = '10',
+  ): Promise<PaginatedOutputDto<UserEntity>> {
+    const pageNumber = parseInt(page, 10);
+    const perPageNumber = parseInt(perPage, 10);
+    return this.usersService.getAllUsersPaginate(pageNumber, perPageNumber);
+  }
   @Get(':id')
   @SetMetadata('message', 'User details retrieved successfully')
   async getUserById(@Param('id', ParseUUIDPipe) id: string) {

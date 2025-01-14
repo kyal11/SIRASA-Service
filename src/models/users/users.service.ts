@@ -6,6 +6,7 @@ import { UpdateUserDto } from './validation/updateUser.dto';
 import { FileService } from 'src/config/upload/fileService';
 import { plainToClass } from 'class-transformer';
 import { UserEntity } from './serialization/user.entity';
+import { PaginatedOutputDto } from 'src/common/paginate/paginatedOutput.dto';
 
 @Injectable()
 export class UsersService {
@@ -18,6 +19,31 @@ export class UsersService {
     const users = await this.prisma.users.findMany();
 
     return users.map((user) => plainToClass(UserEntity, user));
+  }
+  async getAllUsersPaginate(
+    page: number = 1,
+    perPage: number = 10,
+  ): Promise<PaginatedOutputDto<UserEntity>> {
+    const total = await this.prisma.users.count();
+    const skip = (page - 1) * perPage;
+    const data = await this.prisma.users.findMany({
+      skip: skip,
+      take: perPage,
+    });
+    const users = data.map((user) => plainToClass(UserEntity, user));
+    const lastPage = Math.ceil(total / perPage);
+
+    return {
+      data: users,
+      meta: {
+        total: total,
+        lastPage: lastPage,
+        currentPage: page,
+        perPage: perPage,
+        prev: page > 1 ? page - 1 : null,
+        next: page < lastPage ? page + 1 : null,
+      },
+    };
   }
 
   async getUsersById(id: string): Promise<UserEntity> {
