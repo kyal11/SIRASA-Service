@@ -4,11 +4,14 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { RedisService } from 'src/config/redis/redis.service';
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
+export class JwtRefreshStrategy extends PassportStrategy(
+  Strategy,
+  'jwt-refresh',
+) {
   constructor(private readonly redisService: RedisService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      ignoreExpiration: false,
+      ignoreExpiration: true,
       secretOrKey: process.env.JWT_SECRET,
       passReqToCallback: true,
     });
@@ -30,7 +33,6 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       email: payload.email,
     };
   }
-
   async blackListToken(token: string, expiresIn: number) {
     await this.redisService.set('blacklist:' + token, 'true', expiresIn);
   }

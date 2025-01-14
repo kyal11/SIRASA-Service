@@ -60,4 +60,28 @@ export class EmailService {
       throw new Error(`Failed to send reset password email: ${error.message}`);
     }
   }
+
+  async sendVerifyEmail(
+    email: string,
+    name: string,
+    verifyUrl: string,
+  ): Promise<void> {
+    try {
+      const templatePath = join(
+        __dirname,
+        '../../mails/validateEmailTemplete.hbs',
+      );
+      console.log(`Loading email template from: ${templatePath}`);
+
+      const source = await readFile(templatePath, 'utf8');
+      const template = Handlebars.compile(source);
+      const html = template({ name, verifyUrl });
+      console.log(email);
+      console.log(`Verify Email to ${email}`);
+      await this.sendMail(email, 'Active & Verify your account', html);
+    } catch (error) {
+      console.error('Error in Verify Emai:', error);
+      throw new Error(`Failed to Verify Emai ${error.message}`);
+    }
+  }
 }

@@ -130,13 +130,12 @@ export class AuthService {
     return 'Logout successfully';
   }
 
-  async refreshToken(token: string) {
-    const decodedToken = this.jwtService.verify(token);
-
+  async refreshToken(userId: string) {
     const storedRefreshToken = await this.redisService.get(
-      `refreshToken:${decodedToken.userId}`,
+      `refreshToken:${userId}`,
     );
 
+    console.log(userId);
     if (!storedRefreshToken) {
       throw new HttpException(
         'Invalid or expired refresh token',
@@ -145,7 +144,7 @@ export class AuthService {
     }
 
     const user = await this.prisma.users.findUnique({
-      where: { id: decodedToken.userId },
+      where: { id: userId },
     });
 
     if (!user) {
@@ -174,7 +173,7 @@ export class AuthService {
     return userEntity.loginResponse(newAccessToken);
   }
 
-  async sendEmailResetPassword(email: string) {
+  async sendEmailResetPassword(email: string): Promise<void> {
     const user = await this.prisma.users.findUnique({
       where: {
         email: email,
@@ -184,7 +183,10 @@ export class AuthService {
       throw new HttpException('Email not found', HttpStatus.NOT_FOUND);
     }
     const payload = { email: email };
-    const token = this.jwtService.sign(payload, { expiresIn: '1h' });
+    const token = this.jwtService.sign(payload, {
+      secret: process.env.JWT_SECRET_RESET_PASS,
+      expiresIn: '1h',
+    });
 
     const resetUrl = `${process.env.APP_URL}/reset-password?token=${token}`;
 
@@ -194,9 +196,79 @@ export class AuthService {
       resetUrl,
     );
   }
-  async resetPassword(token: string, password: string) {}
+  async resetPassword(
+    email: string,
+    password: string,
+    passwordConfirm: string,
+  ): Promise<string> {
+    const user = await this.prisma.users.findUnique({
+      where: {
+        email: email,
+      },
+    });
+    if (!user) {
+      throw new HttpException(
+        'Invalid token or user not found',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    if (password !== passwordConfirm) {
+      throw new HttpException('Password not match', HttpStatus.BAD_REQUEST);
+    }
 
-  async sendValidateEmail(email: string) {}
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-  async validateEmail(token: string) {}
+    await this.prisma.users.update({
+      where: { email: email },
+      data: { password: hashedPassword },
+    });
+
+    return 'Password reset successfully.';
+  }
+
+  async sendValidateEmail(email: string): Promise<void> {
+    const user = await this.prisma.users.findUnique({
+      where: {
+        email: email,
+      },
+    });
+    if (!user) {
+      throw new HttpException('Email not found', HttpStatus.NOT_FOUND);
+    }
+    if (user.verified === true) {
+      throw new HttpException('Email already verified', HttpStatus.NOT_FOUND);
+    }
+    const payload = { email: email };
+    const token = this.jwtService.sign(payload, {
+      secret: process.env.JWT_SECRET_VALIDATE_EMAIL,
+      expiresIn: '1h',
+    });
+
+    const validateUrl = `${process.env.APP_URL}/validate-email?token=${token}`;
+
+    return await this.emailService.sendVerifyEmail(
+      email,
+      user.name,
+      validateUrl,
+    );
+  }
+  async validateEmail(email: string) {
+    const user = await this.prisma.users.findUnique({
+      where: { email: email },
+    });
+    if (!user) {
+      throw new HttpException(
+        'Invalid token or user not found',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    if (user.verified === true) {
+      throw new HttpException('Email already verified', HttpStatus.BAD_REQUEST);
+    }
+    await this.prisma.users.update({
+      where: { email: email },
+      data: { verified: true },
+    });
+    return { message: 'Email verified successfully.' };
+  }
 }
