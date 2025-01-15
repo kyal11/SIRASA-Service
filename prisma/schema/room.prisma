@@ -1,0 +1,13 @@
+model room {
+    id          String @id @default(uuid())
+    name        String
+    capacity    Int
+    floor       Int
+    startTime   String
+    endTime     String
+    slots       slot[]
+    bookings    booking[]
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
+}
+

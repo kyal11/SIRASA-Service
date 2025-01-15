@@ -1,0 +1,13 @@
+model slot {
+    id         String    @id @default(uuid())
+    roomId     String
+    room       room    @relation(fields: [roomId], references: [id])
+    date       DateTime
+    startTime  String
+    endTime    String
+    isBooked   Boolean   @default(false)
+    bookingId  String?   @unique
+    bookings   bookingSlot[]
+    createdAt  DateTime @default(now())
+    updatedAt  DateTime @updatedAt
+}

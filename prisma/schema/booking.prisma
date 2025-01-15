@@ -1,0 +1,21 @@
+model booking {
+  id         String    @id @default(uuid())
+  userId     String
+  user       users    @relation(fields: [userId], references: [id])
+  roomId     String
+  room       room      @relation(fields: [roomId], references: [id])
+  slots      bookingSlot[]
+  duration   Int
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model bookingSlot {
+  id        String   @id @default(uuid())
+  bookingId String
+  slotId    String
+  booking   booking  @relation(fields: [bookingId], references: [id])
+  slot      slot     @relation(fields: [slotId], references: [id])
+
+  @@unique([bookingId, slotId])
+}
