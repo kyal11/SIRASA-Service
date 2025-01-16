@@ -12,10 +12,22 @@ import { JwtStrategy } from './common/jwt/jwtStrategy';
 import { RedisModule } from './config/redis/redis.module';
 import { RedisService } from './config/redis/redis.service';
 import { EmailService } from './config/email/email.service';
+import { RoomModule } from './models/room/room.module';
+import { SlotModule } from './models/slotRoom/slot.module';
+import { BookingService } from './models/booking/booking.service';
+import { BookingController } from './models/booking/booking.controller';
+import { BookingModule } from './models/booking/booking.module';
 
 @Module({
-  imports: [UsersModule, AuthModule, RedisModule],
-  controllers: [AppController, AuthController],
+  imports: [
+    UsersModule,
+    AuthModule,
+    RedisModule,
+    RoomModule,
+    SlotModule,
+    BookingModule,
+  ],
+  controllers: [AppController, AuthController, BookingController],
   providers: [
     AppService,
     UsersService,
@@ -25,6 +37,7 @@ import { EmailService } from './config/email/email.service';
     JwtStrategy,
     RedisService,
     EmailService,
+    BookingService,
   ],
 })
 export class AppModule {}
