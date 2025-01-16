@@ -1,12 +1,12 @@
-model room {
+model rooms {
     id          String @id @default(uuid())
     name        String
     capacity    Int
     floor       Int
     startTime   String
     endTime     String
-    slots       slot[]
-    bookings    booking[]
+    slots       slots[]
+    bookings    bookings[]
     createdAt   DateTime @default(now())
     updatedAt   DateTime @updatedAt
 }

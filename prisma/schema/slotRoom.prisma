@@ -1,13 +1,14 @@
-model slot {
+model slots {
     id         String    @id @default(uuid())
     roomId     String
-    room       room    @relation(fields: [roomId], references: [id])
+    room       rooms    @relation(fields: [roomId], references: [id])
     date       DateTime
     startTime  String
     endTime    String
     isBooked   Boolean   @default(false)
     bookingId  String?   @unique
     bookings   bookingSlot[]
+    isExpired  Boolean @default(false)
     createdAt  DateTime @default(now())
     updatedAt  DateTime @updatedAt
 }

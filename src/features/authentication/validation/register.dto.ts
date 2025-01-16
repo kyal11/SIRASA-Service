@@ -32,7 +32,7 @@ export class RegisterDto {
   nim: string;
 
   @IsString()
-  phone_number: string;
+  phoneNumber: string;
 
   @IsBoolean()
   @IsOptional()
@@ -44,5 +44,5 @@ export class RegisterDto {
 
   @IsString()
   @IsOptional()
-  image_url?: string;
+  imageUrl?: string;
 }

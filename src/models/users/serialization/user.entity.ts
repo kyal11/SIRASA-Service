@@ -1,4 +1,3 @@
-import { booking } from '@prisma/client';
 import { Exclude, Expose, Type } from 'class-transformer';
 import { BookingEntity } from 'src/models/booking/serilization/booking.entity';
 
@@ -19,7 +18,7 @@ export class UserEntity {
   nim: string;
 
   @Expose()
-  phone_number: string;
+  phoneNumber: string;
 
   @Expose()
   verified: boolean;
@@ -32,7 +31,7 @@ export class UserEntity {
 
   @Expose()
   @Type(() => BookingEntity)
-  bookings: booking;
+  bookings: BookingEntity;
   @Expose()
   createdAt: Date;
 

@@ -28,7 +28,7 @@ export class UpdateUserDto {
 
   @IsString()
   @IsOptional()
-  phone_number?: string;
+  phoneNumber?: string;
 
   @IsBoolean()
   @IsOptional()
@@ -40,5 +40,5 @@ export class UpdateUserDto {
 
   @IsString()
   @IsOptional()
-  image_url?: string;
+  imageUrl?: string;
 }

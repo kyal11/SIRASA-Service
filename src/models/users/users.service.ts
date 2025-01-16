@@ -109,10 +109,10 @@ export class UsersService {
       userData.password = await bcrypt.hash(password, 10);
     }
 
-    let imageUrl = existingUser.image_url;
+    let imageUrl = existingUser.imageUrl;
     if (file) {
-      if (existingUser.image_url) {
-        await this.fileService.deleteProfileImage(existingUser.image_url);
+      if (existingUser.imageUrl) {
+        await this.fileService.deleteProfileImage(existingUser.imageUrl);
       }
 
       imageUrl = await this.fileService.uploadFileImage(file);
@@ -124,7 +124,7 @@ export class UsersService {
       },
       data: {
         ...anyData,
-        image_url: imageUrl,
+        imageUrl: imageUrl,
       },
     });
 
@@ -146,8 +146,8 @@ export class UsersService {
         id: id,
       },
     });
-    if (existingUser.image_url !== null) {
-      await this.fileService.deleteProfileImage(existingUser.image_url);
+    if (existingUser.imageUrl !== null) {
+      await this.fileService.deleteProfileImage(existingUser.imageUrl);
     }
     return 'User deleted successfully';
   }

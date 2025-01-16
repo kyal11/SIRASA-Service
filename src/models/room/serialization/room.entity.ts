@@ -1,4 +1,4 @@
-import { booking, slot } from '@prisma/client';
+import { booking } from '@prisma/client';
 import { Expose, Type } from 'class-transformer';
 import { SlotEntity } from 'src/models/slotRoom/serialization/slot.entity';
 
@@ -10,16 +10,20 @@ export class RoomEntity {
   name: string;
 
   @Expose()
-  floor: string;
+  floor: number;
+
+  @Expose()
+  capacity: number;
 
   @Expose()
   startTime: string;
 
   @Expose()
   endTime: string;
+
   @Expose()
   @Type(() => SlotEntity)
-  slots?: slot[];
+  slots?: SlotEntity[];
 
   @Expose()
   bookings?: booking;

@@ -7,10 +7,10 @@ export class AuthEntity {
   @Exclude()
   password: string;
   nim: string;
-  phone_number: string;
+  phoneNumber: string;
   verified: boolean;
   role: string;
-  image_url?: string;
+  imageUrl?: string;
   created_at: Date;
   updated_at: Date;
 
@@ -30,10 +30,10 @@ export class AuthEntity {
       email: this.email,
       name: this.name,
       nim: this.nim,
-      phone_number: this.phone_number,
+      phoneNumber: this.phoneNumber,
       verified: this.verified,
       role: this.role,
-      image_url: this.image_url,
+      imageUrl: this.imageUrl,
       created_at: this.created_at,
       updated_at: this.updated_at,
     };

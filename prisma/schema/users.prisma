@@ -6,9 +6,9 @@ model users {
   nim          String   @unique
   phoneNumber  String
   verified     Boolean  @default(false)
-  imagUrl      String?
+  imageUrl      String?
   role         Role  @default(user)
-  bookings     booking[]
+  bookings     bookings[]
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }

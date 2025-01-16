@@ -27,7 +27,7 @@ export class CreateUserDto {
   nim: string;
 
   @IsString()
-  phone_number: string;
+  phoneNumber: string;
 
   @IsBoolean()
   @IsOptional()
@@ -39,5 +39,5 @@ export class CreateUserDto {
 
   @IsString()
   @IsOptional()
-  image_url?: string;
+  imageUrl?: string;
 }
