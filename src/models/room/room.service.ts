@@ -23,17 +23,38 @@ export class RoomService {
     return roomData.map((data) => plainToClass(RoomEntity, data));
   }
 
-  async createRoom(roomData: CreateRoomDto): Promise<RoomEntity> {
-    const createdRoom = await this.prisma.room.create({
-      data: {
-        name: roomData.name,
-        floor: roomData.floor,
-        capacity: roomData.capacity,
-        startTime: roomData.startTime,
-        endTime: roomData.endTime,
+  async getRoomById(id: string): Promise<RoomEntity> {
+    const existingRoom = await this.prisma.room.findUnique({
+      where: {
+        id: id,
       },
     });
-    return plainToClass(RoomEntity, createdRoom);
+
+    if (!existingRoom) {
+      throw new HttpException('Data Room not found!', HttpStatus.BAD_REQUEST);
+    }
+
+    return plainToClass(RoomEntity, existingRoom);
+  }
+
+  async createRoom(roomData: CreateRoomDto): Promise<RoomEntity> {
+    try {
+      const createdRoom = await this.prisma.room.create({
+        data: {
+          name: roomData.name,
+          floor: roomData.floor,
+          capacity: roomData.capacity,
+          startTime: roomData.startTime,
+          endTime: roomData.endTime,
+        },
+      });
+      return plainToClass(RoomEntity, createdRoom);
+    } catch (error) {
+      throw new HttpException(
+        `Failed to create Room : ${error.message}`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 
   async createRoomWithSlot(roomData: CreateRoomDto): Promise<RoomEntity> {
@@ -81,6 +102,10 @@ export class RoomService {
 
   async deleteRoom(id: string): Promise<string> {
     try {
+      const existingRoom = await this.prisma.room.findUnique({ where: { id } });
+      if (!existingRoom) {
+        throw new HttpException('Room not found', HttpStatus.NOT_FOUND);
+      }
       await this.prisma.room.delete({
         where: { id },
       });

@@ -8,6 +8,7 @@ import {
   Put,
   HttpCode,
   HttpStatus,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { RoomService } from './room.service';
 import { CreateRoomDto } from './validation/createRoom.dto';
@@ -26,6 +27,13 @@ export class RoomController {
   @Get('slots')
   async getAllRoomsWithSlots(): Promise<RoomEntity[]> {
     return this.roomService.getAllRoomWithSlot();
+  }
+
+  @Get(':id')
+  async getRoomById(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<RoomEntity> {
+    return this.roomService.getRoomById(id);
   }
 
   @Post()
@@ -49,7 +57,7 @@ export class RoomController {
   }
 
   @Delete(':id')
-  @HttpCode(HttpStatus.NO_CONTENT)
+  @HttpCode(HttpStatus.OK)
   async deleteRoom(@Param('id') id: string): Promise<void> {
     await this.roomService.deleteRoom(id);
   }

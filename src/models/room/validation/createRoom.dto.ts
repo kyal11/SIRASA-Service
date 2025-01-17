@@ -1,16 +1,22 @@
 import { slot } from '@prisma/client';
-import { IsNotEmpty, IsOptional, IsString, Matches } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Matches,
+} from 'class-validator';
 
 export class CreateRoomDto {
   @IsString()
   @IsNotEmpty()
   name: string;
 
-  @IsString()
+  @IsNumber()
   @IsNotEmpty()
   floor: number;
 
-  @IsString()
+  @IsNumber()
   @IsNotEmpty()
   capacity: number;
 
