@@ -10,6 +10,8 @@ export class SlotEntity {
   roomId: string;
 
   @Expose()
+  roomName: string;
+
   room?: room;
 
   @Expose()

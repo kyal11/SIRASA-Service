@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'src/config/prisma/prisma.service';
 import { SlotEntity } from './serialization/slot.entity';
-import { plainToClass } from 'class-transformer';
+import { plainToClass, plainToInstance } from 'class-transformer';
 import { CreateSlotDto } from './validation/createSlot.dto';
 import { UpdateSlotDto } from './validation/updateSlot.dto';
 
@@ -19,7 +19,16 @@ export class SlotService {
         room: true,
       },
     });
-    return slots.map((slot) => plainToClass(SlotEntity, slot));
+    return slots.map((slot) =>
+      plainToInstance(
+        SlotEntity,
+        {
+          ...slot,
+          roomName: slot.room?.name,
+        },
+        { excludeExtraneousValues: true },
+      ),
+    );
   }
 
   async getSlotById(id: string): Promise<SlotEntity> {
@@ -34,20 +43,31 @@ export class SlotService {
       throw new NotFoundException(`Slot with ID ${id} not found`);
     }
 
-    return plainToClass(SlotEntity, slot);
+    return plainToInstance(
+      SlotEntity,
+      {
+        ...slot,
+        roomName: slot.room?.name,
+      },
+      { excludeExtraneousValues: true },
+    );
   }
 
   async createSlot(data: CreateSlotDto): Promise<SlotEntity> {
-    const slot = await this.prisma.slot.create({
-      data: {
-        roomId: data.roomId,
-        date: data.date,
-        startTime: data.startTime,
-        endTime: data.endTime,
-      },
-    });
+    try {
+      const slot = await this.prisma.slot.create({
+        data: {
+          roomId: data.roomId,
+          date: data.date,
+          startTime: data.startTime,
+          endTime: data.endTime,
+        },
+      });
 
-    return plainToClass(SlotEntity, slot);
+      return plainToClass(SlotEntity, slot);
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
   }
 
   async updateSlot(id: string, data: UpdateSlotDto): Promise<SlotEntity> {
@@ -100,10 +120,6 @@ export class SlotService {
 
     if (!existingSlot) {
       throw new NotFoundException(`Slot with ID ${id} not found`);
-    }
-
-    if (!existingSlot.isBooked) {
-      throw new BadRequestException(`Slot with ID ${id} is not booked`);
     }
 
     const updatedSlot = await this.prisma.slot.update({
