@@ -10,12 +10,12 @@ export class RoomService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getAllRoom(): Promise<RoomEntity[]> {
-    const roomData = await this.prisma.room.findMany();
+    const roomData = await this.prisma.rooms.findMany();
     return roomData.map((data) => plainToClass(RoomEntity, data));
   }
 
   async getAllRoomWithSlot(): Promise<RoomEntity[]> {
-    const roomData = await this.prisma.room.findMany({
+    const roomData = await this.prisma.rooms.findMany({
       include: {
         slots: true,
       },
@@ -24,7 +24,7 @@ export class RoomService {
   }
 
   async getRoomById(id: string): Promise<RoomEntity> {
-    const existingRoom = await this.prisma.room.findUnique({
+    const existingRoom = await this.prisma.rooms.findUnique({
       where: {
         id: id,
       },
@@ -39,7 +39,7 @@ export class RoomService {
 
   async createRoom(roomData: CreateRoomDto): Promise<RoomEntity> {
     try {
-      const createdRoom = await this.prisma.room.create({
+      const createdRoom = await this.prisma.rooms.create({
         data: {
           name: roomData.name,
           floor: roomData.floor,
@@ -58,7 +58,7 @@ export class RoomService {
   }
 
   async createRoomWithSlot(roomData: CreateRoomDto): Promise<RoomEntity> {
-    const createdRoom = await this.prisma.room.create({
+    const createdRoom = await this.prisma.rooms.create({
       data: {
         name: roomData.name,
         floor: roomData.floor,
@@ -82,12 +82,12 @@ export class RoomService {
   }
 
   async updateRoom(id: string, roomData: UpdateRoomDto): Promise<RoomEntity> {
-    const existingRoom = await this.prisma.room.findUnique({ where: { id } });
+    const existingRoom = await this.prisma.rooms.findUnique({ where: { id } });
     if (!existingRoom) {
       throw new HttpException('Room not found', HttpStatus.NOT_FOUND);
     }
 
-    const updatedRoom = await this.prisma.room.update({
+    const updatedRoom = await this.prisma.rooms.update({
       where: { id },
       data: {
         name: roomData.name,
@@ -102,11 +102,13 @@ export class RoomService {
 
   async deleteRoom(id: string): Promise<string> {
     try {
-      const existingRoom = await this.prisma.room.findUnique({ where: { id } });
+      const existingRoom = await this.prisma.rooms.findUnique({
+        where: { id },
+      });
       if (!existingRoom) {
         throw new HttpException('Room not found', HttpStatus.NOT_FOUND);
       }
-      await this.prisma.room.delete({
+      await this.prisma.rooms.delete({
         where: { id },
       });
       return `Room with ID ${id} has been successfully deleted.`;

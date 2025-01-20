@@ -81,7 +81,7 @@ async function main() {
   ];
 
   for (const room of roomData) {
-    await prisma.room.create({
+    await prisma.rooms.create({
       data: room,
     });
     console.log(`Room ${room.name} created successfully.`);
@@ -93,7 +93,7 @@ async function main() {
       const slotStartTime = `${hour.toString().padStart(2, '0')}:00`;
       const slotEndTime = `${(hour + 1).toString().padStart(2, '0')}:00`;
 
-      await prisma.slot.create({
+      await prisma.slots.create({
         data: {
           id: uuidv4(),
           roomId: room.id,

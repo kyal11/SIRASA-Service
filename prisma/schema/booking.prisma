@@ -4,8 +4,8 @@ model bookings {
   user       users    @relation(fields: [userId], references: [id])
   roomId     String
   room       rooms      @relation(fields: [roomId], references: [id])
-  slots      bookingSlot[]
-  duration   Int
+  bookingSlot      bookingSlot[]
+  status     statusBooking @default(booked)
   createdAt  DateTime  @default(now())
   updatedAt  DateTime @updatedAt
 }
@@ -18,4 +18,10 @@ model bookingSlot {
   slot      slots     @relation(fields: [slotId], references: [id])
 
   @@unique([bookingId, slotId])
+}
+
+enum statusBooking {
+  cancel
+  booked
+  success
 }

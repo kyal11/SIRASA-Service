@@ -14,7 +14,7 @@ export class SlotService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getAllSlot(): Promise<SlotEntity[]> {
-    const slots = await this.prisma.slot.findMany({
+    const slots = await this.prisma.slots.findMany({
       include: {
         room: true,
       },
@@ -32,7 +32,7 @@ export class SlotService {
   }
 
   async getSlotById(id: string): Promise<SlotEntity> {
-    const slot = await this.prisma.slot.findUnique({
+    const slot = await this.prisma.slots.findUnique({
       where: { id },
       include: {
         room: true,
@@ -55,7 +55,7 @@ export class SlotService {
 
   async createSlot(data: CreateSlotDto): Promise<SlotEntity> {
     try {
-      const slot = await this.prisma.slot.create({
+      const slot = await this.prisma.slots.create({
         data: {
           roomId: data.roomId,
           date: data.date,
@@ -71,13 +71,13 @@ export class SlotService {
   }
 
   async updateSlot(id: string, data: UpdateSlotDto): Promise<SlotEntity> {
-    const existingSlot = await this.prisma.slot.findUnique({ where: { id } });
+    const existingSlot = await this.prisma.slots.findUnique({ where: { id } });
 
     if (!existingSlot) {
       throw new NotFoundException(`Slot with ID ${id} not found`);
     }
 
-    const updatedSlot = await this.prisma.slot.update({
+    const updatedSlot = await this.prisma.slots.update({
       where: { id },
       data,
     });
@@ -86,19 +86,19 @@ export class SlotService {
   }
 
   async deleteSlot(id: string): Promise<string> {
-    const existingSlot = await this.prisma.slot.findUnique({ where: { id } });
+    const existingSlot = await this.prisma.slots.findUnique({ where: { id } });
 
     if (!existingSlot) {
       throw new NotFoundException(`Slot with ID ${id} not found`);
     }
 
-    await this.prisma.slot.delete({ where: { id } });
+    await this.prisma.slots.delete({ where: { id } });
 
     return `Slot with ID ${id} has been successfully deleted`;
   }
 
   async updateBookingSlot(id: string): Promise<SlotEntity> {
-    const existingSlot = await this.prisma.slot.findUnique({ where: { id } });
+    const existingSlot = await this.prisma.slots.findUnique({ where: { id } });
 
     if (!existingSlot) {
       throw new NotFoundException(`Slot with ID ${id} not found`);
@@ -108,7 +108,7 @@ export class SlotService {
       throw new BadRequestException(`Slot with ID ${id} is already booked`);
     }
 
-    const updatedSlot = await this.prisma.slot.update({
+    const updatedSlot = await this.prisma.slots.update({
       where: { id },
       data: { isBooked: true },
     });
@@ -116,13 +116,13 @@ export class SlotService {
     return plainToClass(SlotEntity, updatedSlot);
   }
   async updateCancelSlot(id: string): Promise<SlotEntity> {
-    const existingSlot = await this.prisma.slot.findUnique({ where: { id } });
+    const existingSlot = await this.prisma.slots.findUnique({ where: { id } });
 
     if (!existingSlot) {
       throw new NotFoundException(`Slot with ID ${id} not found`);
     }
 
-    const updatedSlot = await this.prisma.slot.update({
+    const updatedSlot = await this.prisma.slots.update({
       where: { id },
       data: { isBooked: false },
     });

@@ -6,8 +6,8 @@ model slots {
     startTime  String
     endTime    String
     isBooked   Boolean   @default(false)
-    bookingId  String?   @unique
-    bookings   bookingSlot[]
+    bookingIdSlot  String?   @unique
+    bookingSlot   bookingSlot[]
     isExpired  Boolean @default(false)
     createdAt  DateTime @default(now())
     updatedAt  DateTime @updatedAt

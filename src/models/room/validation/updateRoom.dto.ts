@@ -1,4 +1,4 @@
-import { slot } from '@prisma/client';
+import { slots } from '@prisma/client';
 import { IsOptional, IsString, Matches } from 'class-validator';
 
 export class UpdateRoomDto {
@@ -30,5 +30,5 @@ export class UpdateRoomDto {
 
   @IsString()
   @IsOptional()
-  slots?: slot[];
+  slots?: slots[];
 }

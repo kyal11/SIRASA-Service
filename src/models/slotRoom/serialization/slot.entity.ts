@@ -1,4 +1,4 @@
-import { room } from '@prisma/client';
+import { rooms } from '@prisma/client';
 import { Expose, Type } from 'class-transformer';
 import { BookingSlotEntity } from 'src/models/booking/serilization/bookingSlot.entity';
 
@@ -12,7 +12,7 @@ export class SlotEntity {
   @Expose()
   roomName: string;
 
-  room?: room;
+  room?: rooms;
 
   @Expose()
   date: Date;

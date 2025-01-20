@@ -1,4 +1,4 @@
-import { slot } from '@prisma/client';
+import { slots } from '@prisma/client';
 import {
   IsNotEmpty,
   IsNumber,
@@ -36,5 +36,5 @@ export class CreateRoomDto {
 
   @IsString()
   @IsOptional()
-  slots?: slot[];
+  slots?: slots[];
 }
