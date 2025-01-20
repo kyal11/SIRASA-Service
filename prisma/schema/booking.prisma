@@ -23,5 +23,5 @@ model bookingSlot {
 enum statusBooking {
   cancel
   booked
-  success
+  done
 }

@@ -1,8 +1,8 @@
-import { statusBooking } from './../../../../node_modules/.prisma/client/index.d';
 import { Expose, Type } from 'class-transformer';
 import { RoomEntity } from 'src/models/room/serialization/room.entity';
 import { UserEntity } from 'src/models/users/serialization/user.entity';
 import { BookingSlotEntity } from './bookingSlot.entity';
+import { statusBooking } from '@prisma/client';
 
 export class BookingEntity {
   @Expose()

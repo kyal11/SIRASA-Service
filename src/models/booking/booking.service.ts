@@ -4,6 +4,7 @@ import { BookingEntity } from './serilization/booking.entity';
 import { plainToInstance } from 'class-transformer';
 import { CreateBookingDto } from './validation/createBooking.dto';
 import { UpdateBookingDto } from './validation/updateBooking.dto';
+import { statusBooking} from '@prisma/client';
 
 @Injectable()
 export class BookingService {
@@ -12,7 +13,11 @@ export class BookingService {
   async getAllBooking(): Promise<BookingEntity[]> {
     const dataBooking = await this.prisma.bookings.findMany({
       include: {
-        bookingSlot: true,
+        bookingSlot: {
+          include: {
+            slot: true,
+          },
+        },
       },
     });
 
@@ -23,6 +28,13 @@ export class BookingService {
     const dataBooking = await this.prisma.bookings.findUnique({
       where: {
         id: id,
+      },
+      include: {
+        bookingSlot: {
+          include: {
+            slot: true,
+          },
+        },
       },
     });
 
@@ -112,7 +124,11 @@ export class BookingService {
         },
       },
       include: {
-        bookingSlot: true,
+        bookingSlot: {
+          include: {
+            slot: true,
+          },
+        },
       },
     });
 
@@ -124,12 +140,14 @@ export class BookingService {
     dataBooking: UpdateBookingDto,
   ): Promise<BookingEntity> {
     const booking = await this.prisma.bookings.findUnique({
-      where: { id: id },
+      where: { id },
+      include: { bookingSlot: true },
     });
 
     if (!booking) {
       throw new HttpException('Booking not found!', HttpStatus.NOT_FOUND);
     }
+
     if (dataBooking.roomId) {
       const roomExists = await this.prisma.rooms.findUnique({
         where: { id: dataBooking.roomId },
@@ -138,22 +156,162 @@ export class BookingService {
       if (!roomExists) {
         throw new HttpException('Room not found!', HttpStatus.NOT_FOUND);
       }
+    }
 
-      const bookingSlots = await this.prisma.bookingSlot.findMany({
-        where: {
-          bookingId: id,
-        },
-      });
-      await this.prisma.slots.updateMany({
-        where: {
-          id: { in: bookingSlots.map((slotId) => slotId.slotId) },
-        },
-        data: { isBooked: false },
-      });
+    const previousSlotIds = booking.bookingSlot.map((slot) => slot.slotId);
+    await this.prisma.slots.updateMany({
+      where: { id: { in: previousSlotIds } },
+      data: { isBooked: false },
+    });
 
-      if (dataBooking.bookingSlotId) {
-        
+    if (!dataBooking.bookingSlotId || dataBooking.bookingSlotId.length === 0) {
+      throw new HttpException(
+        'Slots must have at least one value!',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const newSlots = await this.prisma.slots.findMany({
+      where: {
+        id: { in: dataBooking.bookingSlotId },
+        roomId: dataBooking.roomId || booking.roomId,
+        isBooked: false,
+      },
+    });
+
+    if (newSlots.length !== dataBooking.bookingSlotId.length) {
+      const invalidSlots = dataBooking.bookingSlotId.filter(
+        (id) => !newSlots.some((slot) => slot.id === id),
+      );
+      throw new HttpException(
+        `The following slots are invalid or not found: ${invalidSlots.join(', ')}.`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const sortedSlots = newSlots.sort((a, b) =>
+      a.startTime.localeCompare(b.startTime),
+    );
+    for (let i = 0; i < sortedSlots.length - 1; i++) {
+      if (sortedSlots[i].endTime !== sortedSlots[i + 1].startTime) {
+        throw new HttpException(
+          `Slots must be consecutive. Conflict found between (${sortedSlots[i].startTime} - ${sortedSlots[i].endTime}) and (${sortedSlots[i + 1].startTime} - ${sortedSlots[i + 1].endTime}).`,
+          HttpStatus.BAD_REQUEST,
+        );
       }
     }
+
+    await this.prisma.slots.updateMany({
+      where: { id: { in: dataBooking.bookingSlotId } },
+      data: { isBooked: true },
+    });
+
+    const updatedBooking = await this.prisma.bookings.update({
+      where: { id },
+      data: {
+        roomId: dataBooking.roomId || booking.roomId,
+        userId: dataBooking.userId || booking.userId,
+        bookingSlot: {
+          deleteMany: {},
+          create: dataBooking.bookingSlotId.map((slotId) => ({ slotId })),
+        },
+        updatedAt: new Date(),
+      },
+      include: {
+        bookingSlot: true,
+      },
+    });
+
+    return plainToInstance(BookingEntity, updatedBooking);
+  }
+
+  async updateStatusBooking(id: string): Promise<BookingEntity> {
+    const booking = await this.prisma.bookings.findUnique({
+      where: {
+        id: id,
+      },
+    });
+    if (!booking) {
+      throw new HttpException(
+        'Booking not found or Invalid Qr code.',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    if (booking.status == statusBooking.done) {
+      throw new HttpException(
+        'Booking not found or Invalid Qr code.',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    const updatedBooking = await this.prisma.bookings.update({
+      where: {
+        id: id,
+      },
+      data: {
+        status: statusBooking.done,
+      },
+    });
+
+    return plainToInstance(BookingEntity, updatedBooking);
+  }
+
+  async updateCancelBoking(id: string): Promise<BookingEntity> {
+    const booking = await this.prisma.bookings.findUnique({
+      where: {
+        id: id,
+      },
+    });
+    if (!booking) {
+      throw new HttpException(
+        'Booking not found or Invalid Qr code.',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    if (booking.status == statusBooking.cancel) {
+      throw new HttpException(
+        'Booking is already marked as cancel.',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    const updatedBooking = await this.prisma.bookings.update({
+      where: {
+        id: id,
+      },
+      data: {
+        status: statusBooking.cancel,
+      },
+    });
+
+    return plainToInstance(BookingEntity, updatedBooking);
+  }
+
+  async deleteBooking(id: string): Promise<string> {
+    const booking = await this.prisma.bookings.findUnique({
+      where: {
+        id: id,
+      },
+      include: { bookingSlot: true },
+    });
+    if (!booking) {
+      throw new HttpException(
+        'Booking not found or Invalid Qr code.',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    const slotIds = booking.bookingSlot.map((slot) => slot.slotId);
+    if (slotIds.length > 0) {
+      await this.prisma.slots.updateMany({
+        where: { id: { in: slotIds } },
+        data: { isBooked: false },
+      });
+    }
+    await this.prisma.bookingSlot.deleteMany({
+      where: { bookingId: id },
+    });
+    await this.prisma.bookings.delete({
+      where: { id },
+    });
+
+    return `Booking with ID ${id} has been deleted successfully.`;
   }
 }

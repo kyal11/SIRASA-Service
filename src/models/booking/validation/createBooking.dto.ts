@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsArray, IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateBookingDto {
   @IsString()
@@ -9,7 +9,7 @@ export class CreateBookingDto {
   @IsNotEmpty()
   roomId: string;
 
-  @IsString()
+  @IsArray()
   @IsNotEmpty()
   bookingSlotId: string[];
 }
