@@ -4,7 +4,7 @@ import { BookingEntity } from './serilization/booking.entity';
 import { plainToInstance } from 'class-transformer';
 import { CreateBookingDto } from './validation/createBooking.dto';
 import { UpdateBookingDto } from './validation/updateBooking.dto';
-import { statusBooking} from '@prisma/client';
+import { statusBooking } from '@prisma/client';
 
 @Injectable()
 export class BookingService {

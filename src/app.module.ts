@@ -17,6 +17,8 @@ import { SlotModule } from './models/slotRoom/slot.module';
 import { BookingService } from './models/booking/booking.service';
 import { BookingController } from './models/booking/booking.controller';
 import { BookingModule } from './models/booking/booking.module';
+import { QueueModule } from './config/queue/queue.module';
+import { QueueService } from './config/queue/queue.service';
 
 @Module({
   imports: [
@@ -26,6 +28,7 @@ import { BookingModule } from './models/booking/booking.module';
     RoomModule,
     SlotModule,
     BookingModule,
+    QueueModule,
   ],
   controllers: [AppController, AuthController, BookingController],
   providers: [
@@ -38,6 +41,7 @@ import { BookingModule } from './models/booking/booking.module';
     RedisService,
     EmailService,
     BookingService,
+    QueueService,
   ],
 })
 export class AppModule {}

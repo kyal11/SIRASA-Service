@@ -7,7 +7,7 @@ import { JwtService } from '@nestjs/jwt';
 import { plainToClass } from 'class-transformer';
 import { AuthEntity } from './serialization/auth.entity';
 import { RedisService } from '../../config/redis/redis.service';
-import { EmailService } from 'src/config/email/email.service';
+import { QueueService } from '../../config/queue/queue.service';
 
 @Injectable()
 export class AuthService {
@@ -15,7 +15,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly redisService: RedisService,
-    private readonly emailService: EmailService,
+    private readonly queueService: QueueService,
   ) {}
 
   async register(userData: RegisterDto) {
@@ -173,7 +173,7 @@ export class AuthService {
     return userEntity.loginResponse(newAccessToken);
   }
 
-  async sendEmailResetPassword(email: string): Promise<void> {
+  async sendEmailResetPassword(email: string): Promise<string> {
     const user = await this.prisma.users.findUnique({
       where: {
         email: email,
@@ -189,12 +189,12 @@ export class AuthService {
     });
 
     const resetUrl = `${process.env.APP_URL}/reset-password?token=${token}`;
-
-    return await this.emailService.sendEmailResetPassword(
-      email,
-      user.name,
-      resetUrl,
-    );
+    await this.queueService.addJobEmail('reset-password', {
+      email: email,
+      name: user.name,
+      resetUrl: resetUrl,
+    });
+    return 'Send Email reset password in Process';
   }
   async resetPassword(
     email: string,
@@ -226,7 +226,7 @@ export class AuthService {
     return 'Password reset successfully.';
   }
 
-  async sendValidateEmail(email: string): Promise<void> {
+  async sendValidateEmail(email: string): Promise<string> {
     const user = await this.prisma.users.findUnique({
       where: {
         email: email,
@@ -245,12 +245,12 @@ export class AuthService {
     });
 
     const validateUrl = `${process.env.APP_URL}/validate-email?token=${token}`;
-
-    return await this.emailService.sendVerifyEmail(
-      email,
-      user.name,
-      validateUrl,
-    );
+    await this.queueService.addJobEmail('validate-account', {
+      email: email,
+      name: user.name,
+      verifyUrl: validateUrl,
+    });
+    return 'Send Email validate account in Process';
   }
   async validateEmail(email: string) {
     const user = await this.prisma.users.findUnique({
