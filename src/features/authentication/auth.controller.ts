@@ -38,7 +38,6 @@ export class AuthController {
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   @SetMetadata('message', 'User logged out successfully')
-  @UseGuards(AuthGuard('jwt'))
   async logout(@Req() req: Request) {
     const token = req.headers['authorization']?.split(' ')[1];
     return await this.AuthService.logout(token);

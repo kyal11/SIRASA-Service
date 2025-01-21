@@ -37,7 +37,6 @@ import { QueueService } from './config/queue/queue.service';
     PrismaService,
     FileService,
     AuthService,
-    JwtStrategy,
     RedisService,
     EmailService,
     BookingService,

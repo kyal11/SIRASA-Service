@@ -18,10 +18,13 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateUserDto } from './validation/createUser.dto';
 import { UpdateUserDto } from './validation/updateUser.dto';
 import { UsersService } from './users.service';
-import { SetMetadata } from '@nestjs/common/decorators';
+import { SetMetadata, UseGuards } from '@nestjs/common/decorators';
 import { ExceptionsFilter } from '../../common/filters/exception.filter';
 import { UserEntity } from './serialization/user.entity';
 import { PaginatedOutputDto } from 'src/common/paginate/paginatedOutput.dto';
+import { RolesGuard } from 'src/common/roles/roles.guard';
+import { AuthGuard } from '@nestjs/passport';
+import { Roles } from 'src/common/roles/roles.decorator';
 
 @Controller('users')
 @UseFilters(ExceptionsFilter)
@@ -52,6 +55,8 @@ export class UsersController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @SetMetadata('message', 'User created successfully')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('superadmin')
   async createUser(@Body() createUserDto: CreateUserDto) {
     return await this.usersService.createUser(createUserDto);
   }
@@ -60,6 +65,8 @@ export class UsersController {
   @HttpCode(HttpStatus.OK)
   @UseInterceptors(FileInterceptor('image_url'))
   @SetMetadata('message', 'User updated successfully')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('superadmin')
   async updateUser(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateUserDto: UpdateUserDto,
@@ -71,6 +78,8 @@ export class UsersController {
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
   @SetMetadata('message', 'User deleted successfully')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('superadmin')
   async deleteUser(@Param('id', ParseUUIDPipe) id: string) {
     return await this.usersService.deleteUser(id);
   }
