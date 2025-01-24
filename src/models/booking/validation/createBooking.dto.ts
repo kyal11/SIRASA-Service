@@ -1,4 +1,4 @@
-import { IsArray, IsNotEmpty, IsString } from 'class-validator';
+import { IsArray, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class CreateBookingDto {
   @IsString()
@@ -12,4 +12,8 @@ export class CreateBookingDto {
   @IsArray()
   @IsNotEmpty()
   bookingSlotId: string[];
+
+  @IsNumber()
+  @IsNotEmpty()
+  participant: number;
 }

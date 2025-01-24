@@ -1,0 +1,8 @@
+model device_token {
+    id      String  @id @default(uuid())
+    token   String  @unique
+    userId  String
+    user    users @relation(fields: [userId], references: [id], onDelete: Cascade)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}

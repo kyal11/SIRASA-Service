@@ -23,6 +23,9 @@ export class BookingEntity {
   room: RoomEntity;
 
   @Expose()
+  participant: number;
+
+  @Expose()
   @Type(() => BookingSlotEntity)
   slots: BookingSlotEntity[];
 

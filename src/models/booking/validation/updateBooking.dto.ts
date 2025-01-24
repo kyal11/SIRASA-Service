@@ -1,4 +1,4 @@
-import { IsArray, IsOptional, IsString } from 'class-validator';
+import { IsArray, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class UpdateBookingDto {
   @IsString()
@@ -12,4 +12,8 @@ export class UpdateBookingDto {
   @IsArray()
   @IsOptional()
   bookingSlotId: string[];
+
+  @IsNumber()
+  @IsOptional()
+  pasticipant: number;
 }

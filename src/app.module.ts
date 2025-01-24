@@ -8,7 +8,6 @@ import { FileService } from './config/upload/fileService';
 import { AuthController } from './features/authentication/auth.controller';
 import { AuthService } from './features/authentication/auth.service';
 import { AuthModule } from './features/authentication/auth.module';
-import { JwtStrategy } from './common/jwt/jwtStrategy';
 import { RedisModule } from './config/redis/redis.module';
 import { RedisService } from './config/redis/redis.service';
 import { EmailService } from './config/email/email.service';
@@ -19,6 +18,7 @@ import { BookingController } from './models/booking/booking.controller';
 import { BookingModule } from './models/booking/booking.module';
 import { QueueModule } from './config/queue/queue.module';
 import { QueueService } from './config/queue/queue.service';
+import { NotificationsModule } from './features/notifications/notifications.module';
 
 @Module({
   imports: [
@@ -29,6 +29,7 @@ import { QueueService } from './config/queue/queue.service';
     SlotModule,
     BookingModule,
     QueueModule,
+    NotificationsModule,
   ],
   controllers: [AppController, AuthController, BookingController],
   providers: [

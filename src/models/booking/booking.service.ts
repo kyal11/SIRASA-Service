@@ -63,11 +63,16 @@ export class BookingService {
         id: dataBooking.roomId,
       },
     });
-
     if (!room) {
       throw new HttpException('Room not found!', HttpStatus.NOT_FOUND);
     }
 
+    if (room.capacity < dataBooking.participant) {
+      throw new HttpException(
+        'The room capacity is not enough!',
+        HttpStatus.NOT_FOUND,
+      );
+    }
     const slots = await this.prisma.slots.findMany({
       where: {
         id: {
@@ -122,6 +127,7 @@ export class BookingService {
         bookingSlot: {
           create: dataBooking.bookingSlotId.map((slotId) => ({ slotId })),
         },
+        participant: dataBooking.participant,
       },
       include: {
         bookingSlot: {
