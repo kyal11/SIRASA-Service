@@ -57,27 +57,31 @@ export class UsersService {
   }
 
   async getUserHistoryBooking(id: string): Promise<BookingEntity[]> {
-    const bookings = await this.prisma.bookings.findMany({
+    const dataHistory = await this.prisma.bookings.findMany({
       where: {
         userId: id,
       },
       include: {
         room: true,
-        bookingSlot: true,
+        bookingSlot: {
+          include: {
+            slot: true,
+          },
+        },
       },
       orderBy: {
         createdAt: 'desc',
       },
     });
 
-    if (bookings.length === 0) {
+    if (dataHistory.length === 0) {
       throw new HttpException(
         'History Booking Not found!',
         HttpStatus.NOT_FOUND,
       );
     }
 
-    return plainToInstance(BookingEntity, bookings); // convert ke entity
+    return dataHistory.map((data) => plainToInstance(BookingEntity, data));
   }
   async createUser(userData: CreateUserDto): Promise<UserEntity> {
     const { email, nim, password, role, ...anyData } = userData;

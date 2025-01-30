@@ -17,6 +17,7 @@ export class BookingService {
   async getAllBooking(): Promise<BookingEntity[]> {
     const dataBooking = await this.prisma.bookings.findMany({
       include: {
+        room: true,
         bookingSlot: {
           include: {
             slot: true,
