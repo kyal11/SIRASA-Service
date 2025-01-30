@@ -18,7 +18,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateUserDto } from './validation/createUser.dto';
 import { UpdateUserDto } from './validation/updateUser.dto';
 import { UsersService } from './users.service';
-import { SetMetadata, UseGuards } from '@nestjs/common/decorators';
+import { Req, SetMetadata, UseGuards } from '@nestjs/common/decorators';
 import { ExceptionsFilter } from '../../common/filters/exception.filter';
 import { UserEntity } from './serialization/user.entity';
 import { PaginatedOutputDto } from 'src/common/paginate/paginatedOutput.dto';
@@ -56,6 +56,20 @@ export class UsersController {
     return await this.usersService.getUsersById(id);
   }
 
+  @Get('detail')
+  @SetMetadata('message', 'User details retrieved successfully')
+  @UseGuards(AuthGuard('jwt'))
+  async getUserDetail(@Req() req: any) {
+    const userId = req.user.userId;
+    return await this.usersService.getUsersById(userId);
+  }
+  @Get('history')
+  @SetMetadata('message', 'Users History successfully')
+  @UseGuards(AuthGuard('jwt'))
+  async getUserHistory(@Req() req: any) {
+    const userId = req.user.userId;
+    return await this.usersService.getUserHistoryBooking(userId);
+  }
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @SetMetadata('message', 'User created successfully')

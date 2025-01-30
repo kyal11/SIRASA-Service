@@ -4,9 +4,10 @@ import { CreateUserDto } from './validation/createUser.dto';
 import * as bcrypt from 'bcrypt';
 import { UpdateUserDto } from './validation/updateUser.dto';
 import { FileService } from 'src/config/upload/fileService';
-import { plainToClass } from 'class-transformer';
+import { plainToClass, plainToInstance } from 'class-transformer';
 import { UserEntity } from './serialization/user.entity';
 import { PaginatedOutputDto } from 'src/common/paginate/paginatedOutput.dto';
+import { BookingEntity } from '../booking/serilization/booking.entity';
 
 @Injectable()
 export class UsersService {
@@ -53,6 +54,30 @@ export class UsersService {
       },
     });
     return plainToClass(UserEntity, user);
+  }
+
+  async getUserHistoryBooking(id: string): Promise<BookingEntity[]> {
+    const bookings = await this.prisma.bookings.findMany({
+      where: {
+        userId: id,
+      },
+      include: {
+        room: true,
+        bookingSlot: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    if (bookings.length === 0) {
+      throw new HttpException(
+        'History Booking Not found!',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return plainToInstance(BookingEntity, bookings); // convert ke entity
   }
   async createUser(userData: CreateUserDto): Promise<UserEntity> {
     const { email, nim, password, role, ...anyData } = userData;
