@@ -17,7 +17,11 @@ export class RoomService {
   async getAllRoomWithSlot(): Promise<RoomEntity[]> {
     const roomData = await this.prisma.rooms.findMany({
       include: {
-        slots: true,
+        slots: {
+          where: {
+            isExpired: true,
+          },
+        },
       },
     });
     return roomData.map((data) => plainToClass(RoomEntity, data));

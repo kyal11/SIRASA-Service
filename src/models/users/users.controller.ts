@@ -33,11 +33,15 @@ export class UsersController {
 
   @Get()
   @SetMetadata('message', 'Users retrieved successfully')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('superadmin', 'admin')
   async getAllUsers() {
     return await this.usersService.getAllUsers();
   }
 
   @Get('paginate')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('superadmin', 'admin')
   async getPaginatedUsers(
     @Query('page') page: string = '1',
     @Query('perPage') perPage: string = '10',

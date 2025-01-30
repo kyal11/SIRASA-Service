@@ -7,13 +7,19 @@ import {
   ParseUUIDPipe,
   Post,
   Put,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import { BookingService } from './booking.service';
 import { BookingEntity } from './serilization/booking.entity';
 import { CreateBookingDto } from './validation/createBooking.dto';
 import { UpdateBookingDto } from './validation/updateBooking.dto';
+import { AuthGuard } from '@nestjs/passport';
+import { Roles } from 'src/common/roles/roles.decorator';
+import { RolesGuard } from 'src/common/roles/roles.guard';
 
 @Controller('booking')
+@UseGuards(AuthGuard('jwt'))
 export class BookingController {
   constructor(private readonly bookingService: BookingService) {}
 
@@ -43,10 +49,14 @@ export class BookingController {
   }
 
   @Put(':id/done')
+  @UseGuards(RolesGuard)
+  @Roles('superadmin', 'admin')
   async updateStatusBooking(
+    @Req() req: any,
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<BookingEntity> {
-    return this.bookingService.updateStatusBooking(id);
+    const userIdAdmin = req.user.userId;
+    return this.bookingService.updateStatusBooking(id, userIdAdmin);
   }
 
   @Put(':id/cancel')

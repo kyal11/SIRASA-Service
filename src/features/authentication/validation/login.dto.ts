@@ -19,4 +19,8 @@ export class LoginDto {
   @MinLength(8)
   @IsString()
   password: string;
+
+  @IsString()
+  @IsNotEmpty()
+  deviceToken: string;
 }

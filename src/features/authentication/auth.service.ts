@@ -61,7 +61,7 @@ export class AuthService {
   }
 
   async login(loginDto: LoginDto) {
-    const { email, nim, password } = loginDto;
+    const { email, nim, password, deviceToken } = loginDto;
     let user: any;
 
     if (email) {
@@ -107,6 +107,22 @@ export class AuthService {
       refreshToken,
       60 * 60 * 24 * 7,
     );
+    if (deviceToken) {
+      const existingToken = await this.prisma.device_token.findUnique({
+        where: {
+          token: deviceToken,
+        },
+      });
+
+      if (!existingToken) {
+        await this.prisma.device_token.create({
+          data: {
+            token: deviceToken,
+            userId: user.id,
+          },
+        });
+      }
+    }
     const userEntity = plainToClass(AuthEntity, user);
 
     return userEntity.loginResponse(jwtToken);

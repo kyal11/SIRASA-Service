@@ -15,11 +15,15 @@ import { LoginDto } from './validation/login.dto';
 import { RegisterDto } from './validation/register.dto';
 import { ExceptionsFilter } from '../../common/filters/exception.filter';
 import { AuthGuard } from '@nestjs/passport';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Controller('')
 @UseFilters(ExceptionsFilter)
 export class AuthController {
-  constructor(private readonly AuthService: AuthService) {}
+  constructor(
+    private readonly AuthService: AuthService,
+    private readonly NotificationsService: NotificationsService,
+  ) {}
 
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
@@ -49,7 +53,6 @@ export class AuthController {
   @UseGuards(AuthGuard('jwt-refresh'))
   async refreshToken(@Req() req: any) {
     const userId = req.user.userId;
-    console.log(req.user);
     return await this.AuthService.refreshToken(userId);
   }
 
@@ -65,7 +68,6 @@ export class AuthController {
   @SetMetadata('message', 'Reset Password Succesfully')
   @UseGuards(AuthGuard('token-reset-password'))
   async resetPassword(
-    @Query('token') token: string,
     @Body('password') password: string,
     @Body('passwordConfirm') passwordConfirm: string,
     @Req() req: any,
@@ -92,5 +94,30 @@ export class AuthController {
   async validateEmail(@Query('token') token: string, @Req() req: any) {
     const email = req.user.email;
     return await this.AuthService.validateEmail(email);
+  }
+
+  @Post('notification')
+  async sendNotif(
+    @Body() body: { token: string; roomName: string; timeSlot: string },
+  ) {
+    const { token, roomName, timeSlot } = body;
+
+    if (!token || !roomName || !timeSlot) {
+      throw new Error(
+        'Missing required parameters: token, roomName, or timeSlot',
+      );
+    }
+
+    try {
+      await this.NotificationsService.notifyBookingReminder(
+        token,
+        roomName,
+        timeSlot,
+      );
+      return { message: 'Notification sent successfully' };
+    } catch (error) {
+      console.error('Error sending notification:', error);
+      throw new Error(`Error sending notification: ${error.message}`);
+    }
   }
 }

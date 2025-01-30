@@ -5,10 +5,14 @@ import { plainToInstance } from 'class-transformer';
 import { CreateBookingDto } from './validation/createBooking.dto';
 import { UpdateBookingDto } from './validation/updateBooking.dto';
 import { statusBooking } from '@prisma/client';
+import { NotificationsService } from 'src/features/notifications/notifications.service';
 
 @Injectable()
 export class BookingService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly NotificationsService: NotificationsService,
+  ) {}
 
   async getAllBooking(): Promise<BookingEntity[]> {
     const dataBooking = await this.prisma.bookings.findMany({
@@ -137,7 +141,24 @@ export class BookingService {
         },
       },
     });
+    //Notifikasi berhasil
+    const user = await this.prisma.users.findUnique({
+      where: { id: dataBooking.userId },
+      include: { deviceTokens: true },
+    });
+    const recipientTokens =
+      user?.deviceTokens.map((token) => token.token) || [];
+    const bookingDate = new Date().toLocaleDateString();
+    const timeSlot = sortedSlots
+      .map((slot) => `${slot.startTime} - ${slot.endTime}`)
+      .join(', ');
 
+    await this.NotificationsService.notifyBookingConfirmation(
+      recipientTokens,
+      room.name,
+      bookingDate,
+      timeSlot,
+    );
     return plainToInstance(BookingEntity, booking);
   }
 
@@ -231,21 +252,17 @@ export class BookingService {
     return plainToInstance(BookingEntity, updatedBooking);
   }
 
-  async updateStatusBooking(id: string): Promise<BookingEntity> {
+  async updateStatusBooking(
+    id: string,
+    userIdAdmin: string,
+  ): Promise<BookingEntity> {
     const booking = await this.prisma.bookings.findUnique({
-      where: {
-        id: id,
-      },
+      where: { id },
+      include: { user: { include: { deviceTokens: true } }, room: true },
     });
-    if (!booking) {
+    if (!booking || booking.status == statusBooking.done) {
       throw new HttpException(
-        'Booking not found or Invalid Qr code.',
-        HttpStatus.NOT_FOUND,
-      );
-    }
-    if (booking.status == statusBooking.done) {
-      throw new HttpException(
-        'Booking not found or Invalid Qr code.',
+        'Booking not found or already completed.',
         HttpStatus.NOT_FOUND,
       );
     }
@@ -258,6 +275,27 @@ export class BookingService {
       },
     });
 
+    const userTokens = booking.user.deviceTokens.map((token) => token.token);
+    await this.NotificationsService.notifyUserQRValidation(
+      userTokens,
+      booking.room.name,
+      new Date().toLocaleTimeString(),
+      booking.user.name,
+    );
+
+    const admin = await this.prisma.users.findUnique({
+      where: { id: userIdAdmin },
+      include: { deviceTokens: true },
+    });
+
+    const adminTokens = admin.deviceTokens.map((token) => token.token);
+
+    await this.NotificationsService.notifyAdminQRValidation(
+      adminTokens,
+      booking.room.name,
+      new Date().toLocaleTimeString(),
+      booking.user.name,
+    );
     return plainToInstance(BookingEntity, updatedBooking);
   }
 
@@ -265,6 +303,10 @@ export class BookingService {
     const booking = await this.prisma.bookings.findUnique({
       where: {
         id: id,
+      },
+      include: {
+        user: { include: { deviceTokens: true } },
+        room: true,
       },
     });
     if (!booking) {
@@ -287,7 +329,10 @@ export class BookingService {
         status: statusBooking.cancel,
       },
     });
-
+    await this.NotificationsService.notifyBookingCanceled(
+      booking.user.deviceTokens.map((token) => token.token),
+      booking.room.name,
+    );
     return plainToInstance(BookingEntity, updatedBooking);
   }
 

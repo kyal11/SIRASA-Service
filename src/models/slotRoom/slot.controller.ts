@@ -9,13 +9,16 @@ import {
   HttpCode,
   HttpStatus,
   ParseUUIDPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { SlotService } from './slot.service';
 import { SlotEntity } from './serialization/slot.entity';
 import { CreateSlotDto } from './validation/createSlot.dto';
 import { UpdateSlotDto } from './validation/updateSlot.dto';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('slots')
+@UseGuards(AuthGuard('jwt'))
 export class SlotController {
   constructor(private readonly slotService: SlotService) {}
 

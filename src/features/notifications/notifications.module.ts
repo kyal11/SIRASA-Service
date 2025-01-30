@@ -1,8 +1,10 @@
 import { Module } from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
 import * as firebase from 'firebase-admin';
+import { PrismaService } from 'src/config/prisma/prisma.service';
+
 @Module({
-  providers: [NotificationsService],
+  providers: [NotificationsService, PrismaService],
   exports: [NotificationsService],
 })
 export class NotificationsModule {
