@@ -202,6 +202,66 @@ export class SchedulerJobNotificationService {
     console.log('Auto-cancel process completed.');
   }
 
+  @Cron('1 * * * * *')
+  async handleBookingEndTimeReminder(): Promise<void> {
+    const nowDate = new Date();
+    const timeDeadline = new Date(nowDate.getTime() + 10 * 60 * 1000);
+    const formattedTime = this.formatTime(timeDeadline);
+    const startOfDay = new Date(nowDate.setHours(0, 0, 0, 0)).toISOString();
+    const endOfDay = new Date(nowDate.setHours(23, 59, 59, 999)).toISOString();
+    console.log(
+      `Checking bookings for endTime at ${startOfDay}- ${endOfDay} in ${formattedTime}...`,
+    );
+
+    const bookings = await this.prisma.bookings.findMany({
+      where: {
+        status: 'done',
+        bookingSlot: {
+          some: {
+            slot: {
+              date: {
+                gte: startOfDay,
+                lt: endOfDay,
+              },
+              endTime: formattedTime,
+            },
+          },
+        },
+      },
+      select: {
+        user: {
+          select: {
+            deviceTokens: { select: { token: true } },
+          },
+        },
+        room: { select: { name: true } },
+        bookingSlot: {
+          orderBy: {
+            slot: {
+              endTime: 'desc',
+            },
+          },
+          take: 1,
+          select: {
+            slot: {
+              select: { endTime: true },
+            },
+          },
+        },
+      },
+    });
+
+    console.log(`Booking data endTime:\n${JSON.stringify(bookings, null, 2)}`);
+    for (const booking of bookings) {
+      await this.notification.notifyEndTimeReminder(
+        booking.user.deviceTokens.map((device) => device.token),
+        booking.room.name,
+        10,
+      );
+    }
+
+    console.log('Cron job for booking reminder executed.');
+  }
   private formatTime(date: Date): string {
     const hours = date.getHours().toString().padStart(2, '0');
     const minutes = date.getMinutes().toString().padStart(2, '0');
