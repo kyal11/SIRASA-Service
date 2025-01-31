@@ -6,10 +6,8 @@ export class BookingSlotEntity {
   @Expose()
   id: string;
 
-  @Expose()
   bookingId: string;
 
-  @Expose()
   @Type(() => BookingEntity)
   booking: BookingEntity;
 
@@ -17,12 +15,15 @@ export class BookingSlotEntity {
   slotId: string;
 
   @Expose()
+  startTime: string;
+
+  @Expose()
+  endTime: string;
+
   @Type(() => SlotEntity)
   slot: SlotEntity;
 
-  @Expose()
   createdAt: Date;
 
-  @Expose()
   updatedAt: Date;
 }

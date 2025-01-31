@@ -28,9 +28,9 @@ export class RoomEntity {
   @Expose()
   bookings?: bookings;
 
-  @Expose()
+  // @Expose()
   createdAt: Date;
 
-  @Expose()
+  // @Expose()
   updatedAt: Date;
 }

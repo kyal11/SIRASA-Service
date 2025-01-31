@@ -17,7 +17,7 @@ import { ExceptionsFilter } from '../../common/filters/exception.filter';
 import { AuthGuard } from '@nestjs/passport';
 import { NotificationsService } from '../notifications/notifications.service';
 
-@Controller('')
+@Controller({ version: '1' })
 @UseFilters(ExceptionsFilter)
 export class AuthController {
   constructor(

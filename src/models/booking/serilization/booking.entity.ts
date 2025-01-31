@@ -1,7 +1,7 @@
 import { Expose, Type } from 'class-transformer';
 import { RoomEntity } from 'src/models/room/serialization/room.entity';
 import { UserEntity } from 'src/models/users/serialization/user.entity';
-import { BookingSlotEntity } from './bookingSlot.entity';
+import { BookingSlotEntity } from './booking-slot.entity';
 import { statusBooking } from '@prisma/client';
 
 export class BookingEntity {
@@ -18,16 +18,18 @@ export class BookingEntity {
   @Expose()
   roomId: string;
 
-  @Expose()
+  // @Expose()
   @Type(() => RoomEntity)
   room: RoomEntity;
 
   @Expose()
-  participant: number;
+  roomName: string;
 
   @Expose()
-  @Type(() => BookingSlotEntity)
-  slots: BookingSlotEntity[];
+  roomCapacity: number;
+
+  @Expose()
+  participant: number;
 
   @Expose()
   status: statusBooking;
@@ -37,4 +39,8 @@ export class BookingEntity {
 
   @Expose()
   updatedAt: Date;
+
+  @Expose()
+  @Type(() => BookingSlotEntity)
+  slots: BookingSlotEntity[];
 }

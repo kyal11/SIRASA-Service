@@ -1,12 +1,12 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/config/prisma/prisma.service';
-import { CreateUserDto } from './validation/createUser.dto';
+import { CreateUserDto } from './validation/create-user.dto';
 import * as bcrypt from 'bcrypt';
-import { UpdateUserDto } from './validation/updateUser.dto';
-import { FileService } from 'src/config/upload/fileService';
+import { UpdateUserDto } from './validation/update-user.dto';
+import { FileService } from 'src/config/upload/file-service';
 import { plainToClass, plainToInstance } from 'class-transformer';
 import { UserEntity } from './serialization/user.entity';
-import { PaginatedOutputDto } from 'src/common/paginate/paginatedOutput.dto';
+import { PaginatedOutputDto } from 'src/common/paginate/paginated-output.dto';
 import { BookingEntity } from '../booking/serilization/booking.entity';
 
 @Injectable()

@@ -6,8 +6,8 @@ import {
 import { PrismaService } from 'src/config/prisma/prisma.service';
 import { SlotEntity } from './serialization/slot.entity';
 import { plainToClass, plainToInstance } from 'class-transformer';
-import { CreateSlotDto } from './validation/createSlot.dto';
-import { UpdateSlotDto } from './validation/updateSlot.dto';
+import { CreateSlotDto } from './validation/create-slot.dto';
+import { UpdateSlotDto } from './validation/update-slot.dto';
 
 @Injectable()
 export class SlotService {

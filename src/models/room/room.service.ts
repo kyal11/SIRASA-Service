@@ -1,9 +1,9 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { RoomEntity } from './serialization/room.entity';
 import { PrismaService } from 'src/config/prisma/prisma.service';
-import { plainToClass } from 'class-transformer';
-import { CreateRoomDto } from './validation/createRoom.dto';
-import { UpdateRoomDto } from './validation/updateRoom.dto';
+import { plainToClass, plainToInstance } from 'class-transformer';
+import { CreateRoomDto } from './validation/create-room.dto';
+import { UpdateRoomDto } from './validation/update-room.dto';
 
 @Injectable()
 export class RoomService {
@@ -19,18 +19,27 @@ export class RoomService {
       include: {
         slots: {
           where: {
-            isExpired: true,
+            isExpired: false,
           },
         },
       },
     });
-    return roomData.map((data) => plainToClass(RoomEntity, data));
+    return roomData.map((data) =>
+      plainToInstance(RoomEntity, data, { excludeExtraneousValues: true }),
+    );
   }
 
   async getRoomById(id: string): Promise<RoomEntity> {
     const existingRoom = await this.prisma.rooms.findUnique({
       where: {
         id: id,
+      },
+      include: {
+        slots: {
+          where: {
+            isExpired: false,
+          },
+        },
       },
     });
 

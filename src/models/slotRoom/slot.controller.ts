@@ -13,11 +13,11 @@ import {
 } from '@nestjs/common';
 import { SlotService } from './slot.service';
 import { SlotEntity } from './serialization/slot.entity';
-import { CreateSlotDto } from './validation/createSlot.dto';
-import { UpdateSlotDto } from './validation/updateSlot.dto';
+import { CreateSlotDto } from './validation/create-slot.dto';
+import { UpdateSlotDto } from './validation/update-slot.dto';
 import { AuthGuard } from '@nestjs/passport';
 
-@Controller('slots')
+@Controller({ path: 'slots', version: '1' })
 @UseGuards(AuthGuard('jwt'))
 export class SlotController {
   constructor(private readonly slotService: SlotService) {}

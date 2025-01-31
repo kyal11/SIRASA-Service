@@ -12,12 +12,12 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { RoomService } from './room.service';
-import { CreateRoomDto } from './validation/createRoom.dto';
-import { UpdateRoomDto } from './validation/updateRoom.dto';
+import { CreateRoomDto } from './validation/create-room.dto';
+import { UpdateRoomDto } from './validation/update-room.dto';
 import { RoomEntity } from './serialization/room.entity';
 import { AuthGuard } from '@nestjs/passport';
 
-@Controller('rooms')
+@Controller({ path: 'rooms', version: '1' })
 @UseGuards(AuthGuard('jwt'))
 export class RoomController {
   constructor(private readonly roomService: RoomService) {}

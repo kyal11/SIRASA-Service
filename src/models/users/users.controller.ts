@@ -15,18 +15,18 @@ import {
   Query,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { CreateUserDto } from './validation/createUser.dto';
-import { UpdateUserDto } from './validation/updateUser.dto';
+import { CreateUserDto } from './validation/create-user.dto';
+import { UpdateUserDto } from './validation/update-user.dto';
 import { UsersService } from './users.service';
 import { Req, SetMetadata, UseGuards } from '@nestjs/common/decorators';
 import { ExceptionsFilter } from '../../common/filters/exception.filter';
 import { UserEntity } from './serialization/user.entity';
-import { PaginatedOutputDto } from 'src/common/paginate/paginatedOutput.dto';
+import { PaginatedOutputDto } from 'src/common/paginate/paginated-output.dto';
 import { RolesGuard } from 'src/common/roles/roles.guard';
 import { AuthGuard } from '@nestjs/passport';
 import { Roles } from 'src/common/roles/roles.decorator';
 
-@Controller('users')
+@Controller({ path: 'users', version: '1' })
 @UseFilters(ExceptionsFilter)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}

@@ -26,7 +26,23 @@ export class BookingService {
       },
     });
 
-    return dataBooking.map((data) => plainToInstance(BookingEntity, data));
+    return dataBooking.map((data) =>
+      plainToInstance(
+        BookingEntity,
+        {
+          ...data,
+          roomName: data.room?.name,
+          roomCapacity: data.room?.capacity,
+          slots: data.bookingSlot.map((slot) => ({
+            id: slot.slot.id,
+            slotId: slot.slot.id,
+            startTime: slot.slot.startTime,
+            endTime: slot.slot.endTime,
+          })),
+        },
+        { excludeExtraneousValues: true },
+      ),
+    );
   }
 
   async getBookingWithId(id: string): Promise<BookingEntity> {
@@ -308,6 +324,7 @@ export class BookingService {
       include: {
         user: { include: { deviceTokens: true } },
         room: true,
+        bookingSlot: true,
       },
     });
     if (!booking) {
@@ -322,12 +339,25 @@ export class BookingService {
         HttpStatus.NOT_FOUND,
       );
     }
+    await this.prisma.slots.updateMany({
+      where: {
+        id: {
+          in: booking.bookingSlot.map((slot) => slot.slotId),
+        },
+      },
+      data: {
+        isBooked: false,
+      },
+    });
     const updatedBooking = await this.prisma.bookings.update({
       where: {
         id: id,
       },
       data: {
         status: statusBooking.cancel,
+      },
+      include: {
+        bookingSlot: true,
       },
     });
     await this.NotificationsService.notifyBookingCanceled(

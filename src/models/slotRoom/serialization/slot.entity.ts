@@ -1,6 +1,6 @@
 import { rooms } from '@prisma/client';
 import { Expose, Type } from 'class-transformer';
-import { BookingSlotEntity } from 'src/models/booking/serilization/bookingSlot.entity';
+import { BookingSlotEntity } from 'src/models/booking/serilization/booking-slot.entity';
 
 export class SlotEntity {
   @Expose()
@@ -29,16 +29,16 @@ export class SlotEntity {
   @Expose()
   bookingId?: string;
 
-  @Expose()
+  // @Expose()
   @Type(() => BookingSlotEntity)
   bookings?: BookingSlotEntity[];
 
-  @Expose()
+  // @Expose()
   isExpired: boolean;
 
-  @Expose()
+  // @Expose()
   createdAt: Date;
 
-  @Expose()
+  // @Expose()
   updatedAt: Date;
 }
