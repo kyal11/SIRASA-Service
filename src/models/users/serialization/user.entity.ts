@@ -32,6 +32,7 @@ export class UserEntity {
   @Expose()
   @Type(() => BookingEntity)
   bookings: BookingEntity;
+
   @Expose()
   createdAt: Date;
 

@@ -17,7 +17,11 @@ export class UsersService {
   ) {}
 
   async getAllUsers(): Promise<UserEntity[]> {
-    const users = await this.prisma.users.findMany();
+    const users = await this.prisma.users.findMany({
+      include: {
+        deviceTokens: true,
+      },
+    });
 
     return users.map((user) => plainToClass(UserEntity, user));
   }

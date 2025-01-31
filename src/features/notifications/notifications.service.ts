@@ -123,10 +123,10 @@ export class NotificationsService {
   async notifyValidationDeadline(
     recipient: string | string[],
     roomName: string,
-    deadline: string,
+    startTime: string,
     icon?: string,
   ): Promise<void> {
-    const message = `Harap segera validasi QR code Anda untuk ${roomName} sebelum pukul ${deadline}, atau peminjaman akan dibatalkan otomatis.`;
+    const message = `Harap segera validasi QR code Anda untuk ${roomName} sebelum pukul ${this.calculateDeadline(startTime)}, atau peminjaman akan dibatalkan otomatis.`;
     await this.sendNotification(
       'Batas Waktu Validasi',
       message,
@@ -218,7 +218,7 @@ export class NotificationsService {
       .map(Number);
     const deadline = new Date();
     deadline.setHours(startHour);
-    deadline.setMinutes(startMinute + 15);
+    deadline.setMinutes(startMinute + 10);
     return `${deadline.getHours()}:${deadline.getMinutes().toString().padStart(2, '0')}`;
   }
   async removeInvalidToken(token: string): Promise<void> {
