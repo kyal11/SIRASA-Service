@@ -33,7 +33,7 @@ export class SlotEntity {
   @Type(() => BookingSlotEntity)
   bookings?: BookingSlotEntity[];
 
-  // @Expose()
+  @Expose()
   isExpired: boolean;
 
   // @Expose()

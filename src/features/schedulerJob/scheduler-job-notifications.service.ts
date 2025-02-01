@@ -10,13 +10,34 @@ export class SchedulerJobNotificationService {
     private readonly notification: NotificationsService,
   ) {}
 
-  @Cron('1 * * * * *')
+  @Cron('*/10 * * * *')
   async handleBookingReminder(): Promise<void> {
     const nowDate = new Date();
     const tenMinutesLater = new Date(nowDate.getTime() + 10 * 60 * 1000);
     const formattedTime = this.formatTime(tenMinutesLater);
-    const startOfDay = new Date(nowDate.setHours(0, 0, 0, 0)).toISOString();
-    const endOfDay = new Date(nowDate.setHours(23, 59, 59, 999)).toISOString();
+    const startOfDay = new Date(
+      Date.UTC(
+        nowDate.getUTCFullYear(),
+        nowDate.getUTCMonth(),
+        nowDate.getUTCDate(),
+        0,
+        0,
+        0,
+        0,
+      ),
+    ).toISOString();
+
+    const endOfDay = new Date(
+      Date.UTC(
+        nowDate.getUTCFullYear(),
+        nowDate.getUTCMonth(),
+        nowDate.getUTCDate(),
+        23,
+        59,
+        59,
+        999,
+      ),
+    ).toISOString();
     console.log(
       `Checking bookings for reminders at ${startOfDay}- ${endOfDay} in ${formattedTime}...`,
     );
@@ -70,13 +91,34 @@ export class SchedulerJobNotificationService {
 
     console.log('Cron job for booking reminder executed.');
   }
-  @Cron('1 * * * * *')
+  @Cron('*/10 * * * *')
   async handleBookingDeadline(): Promise<void> {
     const nowDate = new Date();
     const timeDeadline = new Date(nowDate.getTime());
     const formattedTime = this.formatTime(timeDeadline);
-    const startOfDay = new Date(nowDate.setHours(0, 0, 0, 0)).toISOString();
-    const endOfDay = new Date(nowDate.setHours(23, 59, 59, 999)).toISOString();
+    const startOfDay = new Date(
+      Date.UTC(
+        nowDate.getUTCFullYear(),
+        nowDate.getUTCMonth(),
+        nowDate.getUTCDate(),
+        0,
+        0,
+        0,
+        0,
+      ),
+    ).toISOString();
+
+    const endOfDay = new Date(
+      Date.UTC(
+        nowDate.getUTCFullYear(),
+        nowDate.getUTCMonth(),
+        nowDate.getUTCDate(),
+        23,
+        59,
+        59,
+        999,
+      ),
+    ).toISOString();
     console.log(
       `Checking bookings for deadline at ${startOfDay}- ${endOfDay} in ${formattedTime}...`,
     );
@@ -131,13 +173,34 @@ export class SchedulerJobNotificationService {
     console.log('Cron job for booking reminder executed.');
   }
 
-  @Cron('1 * * * * *')
+  @Cron('*/10 * * * *')
   async handleAutoCancel(): Promise<void> {
     const nowDate = new Date();
     const tenMinutesAgo = new Date(nowDate.getTime() - 10 * 60 * 1000);
     const formattedTime = this.formatTime(tenMinutesAgo);
-    const startOfDay = new Date(nowDate.setHours(0, 0, 0, 0)).toISOString();
-    const endOfDay = new Date(nowDate.setHours(23, 59, 59, 999)).toISOString();
+    const startOfDay = new Date(
+      Date.UTC(
+        nowDate.getUTCFullYear(),
+        nowDate.getUTCMonth(),
+        nowDate.getUTCDate(),
+        0,
+        0,
+        0,
+        0,
+      ),
+    ).toISOString();
+
+    const endOfDay = new Date(
+      Date.UTC(
+        nowDate.getUTCFullYear(),
+        nowDate.getUTCMonth(),
+        nowDate.getUTCDate(),
+        23,
+        59,
+        59,
+        999,
+      ),
+    ).toISOString();
 
     console.log(
       `Checking for auto-cancel at ${startOfDay} - ${endOfDay} for bookings before ${formattedTime}...`,
@@ -202,13 +265,34 @@ export class SchedulerJobNotificationService {
     console.log('Auto-cancel process completed.');
   }
 
-  @Cron('1 * * * * *')
+  @Cron('*/10 * * * *')
   async handleBookingEndTimeReminder(): Promise<void> {
     const nowDate = new Date();
     const timeDeadline = new Date(nowDate.getTime() + 10 * 60 * 1000);
     const formattedTime = this.formatTime(timeDeadline);
-    const startOfDay = new Date(nowDate.setHours(0, 0, 0, 0)).toISOString();
-    const endOfDay = new Date(nowDate.setHours(23, 59, 59, 999)).toISOString();
+    const startOfDay = new Date(
+      Date.UTC(
+        nowDate.getUTCFullYear(),
+        nowDate.getUTCMonth(),
+        nowDate.getUTCDate(),
+        0,
+        0,
+        0,
+        0,
+      ),
+    ).toISOString();
+
+    const endOfDay = new Date(
+      Date.UTC(
+        nowDate.getUTCFullYear(),
+        nowDate.getUTCMonth(),
+        nowDate.getUTCDate(),
+        23,
+        59,
+        59,
+        999,
+      ),
+    ).toISOString();
     console.log(
       `Checking bookings for endTime at ${startOfDay}- ${endOfDay} in ${formattedTime}...`,
     );

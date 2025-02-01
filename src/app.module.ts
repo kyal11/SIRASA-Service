@@ -22,6 +22,7 @@ import { NotificationsModule } from './features/notifications/notifications.modu
 import { ScheduleModule } from '@nestjs/schedule';
 import { SchedulerJobModule } from './features/schedulerJob/scheduler-job.module';
 import { SchedulerJobNotificationService } from './features/schedulerJob/scheduler-job-notifications.service';
+import { SchedulerJobSlotService } from './features/schedulerJob/scheduler-job-slot.service';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { SchedulerJobNotificationService } from './features/schedulerJob/schedul
     BookingService,
     QueueService,
     SchedulerJobNotificationService,
+    SchedulerJobSlotService,
   ],
 })
 export class AppModule {}
