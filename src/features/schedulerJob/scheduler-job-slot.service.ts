@@ -111,7 +111,7 @@ export class SchedulerJobSlotService {
   @Cron('*/10 * * * *')
   async closeTimeSlotBooking(): Promise<void> {
     const nowDate = new Date();
-    const closeTime = new Date(nowDate.getTime() + 10 * 60 * 1000);
+    const closeTime = new Date(nowDate.getTime() + 20 * 60 * 1000);
     const formattedTime = this.formatTime(closeTime);
     const startOfDay = new Date(
       Date.UTC(

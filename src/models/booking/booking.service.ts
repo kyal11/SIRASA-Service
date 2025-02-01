@@ -6,6 +6,7 @@ import { CreateBookingDto } from './validation/createBooking.dto';
 import { UpdateBookingDto } from './validation/updateBooking.dto';
 import { statusBooking } from '@prisma/client';
 import { NotificationsService } from 'src/features/notifications/notifications.service';
+import { PaginatedOutputDto } from 'src/common/paginate/paginated-output.dto';
 
 @Injectable()
 export class BookingService {
@@ -45,6 +46,57 @@ export class BookingService {
     );
   }
 
+  async getAllBookingPaginate(
+    page: number = 1,
+    perPage: number = 10,
+  ): Promise<PaginatedOutputDto<BookingEntity>> {
+    const total = await this.prisma.bookings.count();
+    const skip = (page - 1) * perPage;
+    const dataBooking = await this.prisma.bookings.findMany({
+      skip: skip,
+      take: perPage,
+      include: {
+        room: true,
+        bookingSlot: {
+          include: {
+            slot: true,
+          },
+        },
+      },
+    });
+
+    const bookings = dataBooking.map((data) =>
+      plainToInstance(
+        BookingEntity,
+        {
+          ...data,
+          roomName: data.room?.name,
+          roomCapacity: data.room?.capacity,
+          slots: data.bookingSlot.map((slot) => ({
+            id: slot.slot.id,
+            slotId: slot.slot.id,
+            startTime: slot.slot.startTime,
+            endTime: slot.slot.endTime,
+          })),
+        },
+        { excludeExtraneousValues: true },
+      ),
+    );
+
+    const lastPage = Math.ceil(total / perPage);
+
+    return {
+      data: bookings,
+      meta: {
+        total: total,
+        lastPage: lastPage,
+        currentPage: page,
+        perPage: perPage,
+        prev: page > 1 ? page - 1 : null,
+        next: page < lastPage ? page + 1 : null,
+      },
+    };
+  }
   async getBookingWithId(id: string): Promise<BookingEntity> {
     const dataBooking = await this.prisma.bookings.findUnique({
       where: {

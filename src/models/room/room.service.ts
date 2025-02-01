@@ -87,10 +87,45 @@ export class RoomService {
           })),
         },
       },
-      include: {
-        slots: true,
-      },
     });
+
+    const today = new Date();
+    const days = [today];
+    for (let i = 1; i <= 2; i++) {
+      const nextDay = new Date(today);
+      nextDay.setDate(today.getDate() + i);
+      days.push(nextDay);
+    }
+
+    const startHour = parseInt(createdRoom.startTime.split(':')[0], 10);
+    const endHour = parseInt(createdRoom.endTime.split(':')[0], 10);
+
+    const newSlots = [];
+
+    for (let dayIndex = 0; dayIndex < days.length; dayIndex++) {
+      const day = days[dayIndex];
+      const dateString = day.toISOString().split('T')[0];
+      for (let hour = startHour; hour < endHour; hour++) {
+        const slotStartTime = `${hour.toString().padStart(2, '0')}:00`;
+        const slotEndTime = `${(hour + 1).toString().padStart(2, '0')}:00`;
+        newSlots.push({
+          id: crypto.randomUUID(),
+          roomId: createdRoom.id,
+          date: new Date(`${dateString}T00:00:00Z`).toISOString(),
+          startTime: slotStartTime,
+          endTime: slotEndTime,
+          isBooked: false,
+          isExpired: false,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+      }
+    }
+
+    if (newSlots.length > 0) {
+      await this.prisma.slots.createMany({ data: newSlots });
+    }
+
     return plainToClass(RoomEntity, createdRoom);
   }
 

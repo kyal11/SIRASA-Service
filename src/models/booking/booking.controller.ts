@@ -7,6 +7,7 @@ import {
   ParseUUIDPipe,
   Post,
   Put,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -17,6 +18,7 @@ import { UpdateBookingDto } from './validation/updateBooking.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { Roles } from 'src/common/roles/roles.decorator';
 import { RolesGuard } from 'src/common/roles/roles.guard';
+import { PaginatedOutputDto } from 'src/common/paginate/paginated-output.dto';
 
 @Controller({ path: 'bookings', version: '1' })
 @UseGuards(AuthGuard('jwt'))
@@ -26,6 +28,17 @@ export class BookingController {
   @Get()
   async getAllBooking(): Promise<BookingEntity[]> {
     return this.bookingService.getAllBooking();
+  }
+  @Get('paginate')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  // @Roles('superadmin', 'admin')
+  async getPaginatedBookings(
+    @Query('page') page: string = '1',
+    @Query('perPage') perPage: string = '10',
+  ): Promise<PaginatedOutputDto<BookingEntity>> {
+    const pageNumber = parseInt(page, 10);
+    const perPageNumber = parseInt(perPage, 10);
+    return this.bookingService.getAllBookingPaginate(pageNumber, perPageNumber);
   }
 
   @Get(':id')
