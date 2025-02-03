@@ -23,6 +23,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { SchedulerJobModule } from './features/schedulerJob/scheduler-job.module';
 import { SchedulerJobNotificationService } from './features/schedulerJob/scheduler-job-notifications.service';
 import { SchedulerJobSlotService } from './features/schedulerJob/scheduler-job-slot.service';
+import { GreedyRecommendation } from './features/recommendationRoom/greedy-recommendation';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { SchedulerJobSlotService } from './features/schedulerJob/scheduler-job-s
     QueueService,
     SchedulerJobNotificationService,
     SchedulerJobSlotService,
+    GreedyRecommendation,
   ],
 })
 export class AppModule {}

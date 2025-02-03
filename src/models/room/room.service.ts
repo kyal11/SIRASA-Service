@@ -91,7 +91,7 @@ export class RoomService {
 
     const today = new Date();
     const days = [today];
-    for (let i = 1; i <= 2; i++) {
+    for (let i = 0; i <= 2; i++) {
       const nextDay = new Date(today);
       nextDay.setDate(today.getDate() + i);
       days.push(nextDay);
@@ -121,7 +121,7 @@ export class RoomService {
         });
       }
     }
-
+    console.log(newSlots);
     if (newSlots.length > 0) {
       await this.prisma.slots.createMany({ data: newSlots });
     }

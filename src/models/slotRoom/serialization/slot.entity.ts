@@ -9,8 +9,8 @@ export class SlotEntity {
   @Expose()
   roomId: string;
 
-  @Expose()
-  roomName: string;
+  // @Expose()
+  // roomName: string;
 
   room?: rooms;
 

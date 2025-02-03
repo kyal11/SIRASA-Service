@@ -19,6 +19,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { Roles } from 'src/common/roles/roles.decorator';
 import { RolesGuard } from 'src/common/roles/roles.guard';
 import { PaginatedOutputDto } from 'src/common/paginate/paginated-output.dto';
+import { RecommendationEntity } from 'src/features/recommendationRoom/serilization/recommendation.entity';
 
 @Controller({ path: 'bookings', version: '1' })
 @UseGuards(AuthGuard('jwt'))
@@ -49,7 +50,9 @@ export class BookingController {
   }
 
   @Post()
-  async createBooking(@Body() data: CreateBookingDto): Promise<BookingEntity> {
+  async createBooking(
+    @Body() data: CreateBookingDto,
+  ): Promise<BookingEntity | RecommendationEntity[]> {
     return this.bookingService.createBooking(data);
   }
 

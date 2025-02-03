@@ -7,12 +7,15 @@ import { UpdateBookingDto } from './validation/updateBooking.dto';
 import { statusBooking } from '@prisma/client';
 import { NotificationsService } from 'src/features/notifications/notifications.service';
 import { PaginatedOutputDto } from 'src/common/paginate/paginated-output.dto';
+import { RecommendationEntity } from 'src/features/recommendationRoom/serilization/recommendation.entity';
+import { GreedyRecommendation } from 'src/features/recommendationRoom/greedy-recommendation';
 
 @Injectable()
 export class BookingService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly NotificationsService: NotificationsService,
+    private readonly recommendation: GreedyRecommendation,
   ) {}
 
   async getAllBooking(): Promise<BookingEntity[]> {
@@ -121,7 +124,9 @@ export class BookingService {
     return plainToInstance(BookingEntity, dataBooking);
   }
 
-  async createBooking(dataBooking: CreateBookingDto): Promise<BookingEntity> {
+  async createBooking(
+    dataBooking: CreateBookingDto,
+  ): Promise<BookingEntity | RecommendationEntity[]> {
     if (
       dataBooking.bookingSlotId.length < 1 ||
       dataBooking.bookingSlotId.length > 2
@@ -140,12 +145,6 @@ export class BookingService {
       throw new HttpException('Room not found!', HttpStatus.NOT_FOUND);
     }
 
-    if (room.capacity < dataBooking.participant) {
-      throw new HttpException(
-        'The room capacity is not enough!',
-        HttpStatus.NOT_FOUND,
-      );
-    }
     const slots = await this.prisma.slots.findMany({
       where: {
         id: {
@@ -177,17 +176,52 @@ export class BookingService {
       }
     }
 
+    const rooms = await this.prisma.rooms.findMany({
+      include: {
+        slots: {
+          orderBy: {
+            startTime: 'asc',
+          },
+          where: {
+            isExpired: false,
+          },
+        },
+      },
+    });
+    if (room.capacity < dataBooking.participant) {
+      // throw new HttpException(
+      //   'The room capacity is not enough!',
+      //   HttpStatus.NOT_FOUND,
+      // );
+      return this.recommendation.recommend(
+        {
+          roomId: dataBooking.roomId,
+          participant: dataBooking.participant,
+          slots: slots,
+        },
+        rooms,
+      );
+    }
     const bookedSlots = slots.filter((slot) => slot.isBooked);
     if (bookedSlots.length > 0) {
-      const bookedSlotTimes = bookedSlots
-        .map((slot) => `(${slot.startTime} - ${slot.endTime})`)
-        .join(', ');
-      throw new HttpException(
-        `One or more slots are already booked: ${bookedSlotTimes}.`,
-        HttpStatus.BAD_REQUEST,
+      // const bookedSlotTimes = bookedSlots
+      //   .map((slot) => `(${slot.startTime} - ${slot.endTime})`)
+      //   .join(', ');
+      // throw new HttpException(
+      //   `One or more slots are already booked: ${bookedSlotTimes}.`,
+      //   HttpStatus.BAD_REQUEST,
+      // );
+      return this.recommendation.recommend(
+        {
+          roomId: dataBooking.roomId,
+          participant: dataBooking.participant,
+          slots: slots,
+        },
+        rooms,
       );
     }
 
+    // Buat Booking
     await this.prisma.slots.updateMany({
       where: { id: { in: dataBooking.bookingSlotId } },
       data: { isBooked: true },

@@ -29,7 +29,7 @@ async function main() {
     {
       email: 'user@example.com',
       nim: '0012345679',
-      password: await bcrypt.hash('user123', 10),
+      password: await bcrypt.hash('userexample123', 10),
       role: Role.user,
       phoneNumber: '08123453213',
       name: 'Regular User',
