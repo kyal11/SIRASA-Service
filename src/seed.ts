@@ -53,61 +53,61 @@ async function main() {
     }
   }
 
-  const roomData = [
-    {
-      id: uuidv4(),
-      name: 'Room-1',
-      capacity: 10,
-      floor: 4,
-      startTime: '08:00',
-      endTime: '18:00',
-    },
-    {
-      id: uuidv4(),
-      name: 'Room-2',
-      capacity: 10,
-      floor: 4,
-      startTime: '08:00',
-      endTime: '18:00',
-    },
-    {
-      id: uuidv4(),
-      name: 'Room-3',
-      capacity: 10,
-      floor: 4,
-      startTime: '08:00',
-      endTime: '18:00',
-    },
-  ];
+  // const roomData = [
+  //   {
+  //     id: uuidv4(),
+  //     name: 'Room-1',
+  //     capacity: 10,
+  //     floor: 4,
+  //     startTime: '08:00',
+  //     endTime: '18:00',
+  //   },
+  //   {
+  //     id: uuidv4(),
+  //     name: 'Room-2',
+  //     capacity: 10,
+  //     floor: 4,
+  //     startTime: '08:00',
+  //     endTime: '18:00',
+  //   },
+  //   {
+  //     id: uuidv4(),
+  //     name: 'Room-3',
+  //     capacity: 10,
+  //     floor: 4,
+  //     startTime: '08:00',
+  //     endTime: '18:00',
+  //   },
+  // ];
 
-  for (const room of roomData) {
-    await prisma.rooms.create({
-      data: room,
-    });
-    console.log(`Room ${room.name} created successfully.`);
+  // for (const room of roomData) {
+  //   await prisma.rooms.create({
+  //     data: room,
+  //   });
+  //   console.log(`Room ${room.name} created successfully.`);
 
-    const startTime = parseInt(room.startTime.split(':')[0]);
-    const endTime = parseInt(room.endTime.split(':')[0]);
+  //   const startTime = parseInt(room.startTime.split(':')[0]);
+  //   const endTime = parseInt(room.endTime.split(':')[0]);
 
-    for (let hour = startTime; hour < endTime; hour++) {
-      const slotStartTime = `${hour.toString().padStart(2, '0')}:00`;
-      const slotEndTime = `${(hour + 1).toString().padStart(2, '0')}:00`;
+  //   for (let hour = startTime; hour < endTime; hour++) {
+  //     const slotStartTime = `${hour.toString().padStart(2, '0')}:00`;
+  //     const slotEndTime = `${(hour + 1).toString().padStart(2, '0')}:00`;
 
-      await prisma.slots.create({
-        data: {
-          id: uuidv4(),
-          roomId: room.id,
-          date: new Date(),
-          startTime: slotStartTime,
-          endTime: slotEndTime,
-          isBooked: false,
-        },
-      });
-      console.log(
-        `Slot ${slotStartTime} - ${slotEndTime} created for room ${room.name}.`,
-      );
-    }
-  }
+  //     await prisma.slots.create({
+  //       data: {
+  //         id: uuidv4(),
+  //         roomId: room.id,
+  //         date: new Date(),
+  //         startTime: slotStartTime,
+  //         endTime: slotEndTime,
+  //         isBooked: false,
+  //       },
+  //     });
+  //     console.log(
+  //       `Slot ${slotStartTime} - ${slotEndTime} created for room ${room.name}.`,
+  //     );
+  //   }
+  // }
 }
 
 main()

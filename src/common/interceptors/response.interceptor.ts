@@ -19,6 +19,14 @@ export class ResponseInterceptor implements NestInterceptor {
 
     return next.handle().pipe(
       map((data) => {
+        if (
+          data &&
+          typeof data === 'object' &&
+          'status' in data &&
+          'message' in data
+        ) {
+          return data;
+        }
         const response: any = {
           status: 'success',
           message: message,

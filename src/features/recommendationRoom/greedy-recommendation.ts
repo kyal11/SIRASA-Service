@@ -11,39 +11,45 @@ export class GreedyRecommendation {
   ): RecommendationEntity[] {
     let recommendations: RecommendationEntity[] = [];
 
+    // console.log(rooms);
     // Filter ruangan yang memiliki kapasitas cukup
     const suitableRooms = rooms.filter(
       (room) => room.capacity >= preferred.participant,
     );
 
-    console.log('suitableRooms', suitableRooms);
+    // console.log('suitableRooms', suitableRooms);
     // Filter ruangan yang memiliki slot yang cocok dengan preferensi
     const matchingRooms = suitableRooms.filter((room) =>
       room.slots.some((slot) =>
         preferred.slots.some(
-          (prefSlot) => slot.startTime === prefSlot.startTime && !slot.isBooked,
+          (prefSlot) =>
+            new Date(slot.date).toISOString().split('T')[0] ===
+              new Date(prefSlot.date).toISOString().split('T')[0] &&
+            !slot.isBooked,
         ),
       ),
     );
 
+    // console.log('matching rooms: ', matchingRooms);
+    // console.log(matchingRooms.map((room) => room.slots));
     // Mencari rekomendasi pertama berdasarkan kecocokan slot
     recommendations = this.prepareRecommendations(matchingRooms, preferred);
 
-    console.log('recommendations', recommendations);
+    // console.log('recommendations', recommendations);
     // Jika sudah mencapai limit, langsung return
     if (recommendations.length >= this.limitRecommend) {
       return recommendations;
     }
 
     // Jika masih kurang, cari alternatif ruangan dengan slot kosong
-    const alternativeRooms = suitableRooms.filter((room) =>
-      room.slots.some((slot) => !slot.isBooked),
-    );
+    // const alternativeRooms = matchingRooms.filter((room) =>
+    //   room.slots.some((slot) => !slot.isBooked),
+    // );
 
-    // Tambahkan rekomendasi dari ruangan alternatif
-    recommendations.push(
-      ...this.prepareRecommendations(alternativeRooms, preferred),
-    );
+    // // // Tambahkan rekomendasi dari ruangan alternatif
+    // recommendations.push(
+    //   ...this.prepareRecommendations(alternativeRooms, preferred),
+    // );
 
     // Pastikan rekomendasi tidak melebihi limit
     return recommendations;
@@ -73,6 +79,7 @@ export class GreedyRecommendation {
       availableSlots = availableSlots.sort((a, b) =>
         a.startTime.localeCompare(b.startTime),
       );
+
       console.log(availableSlots);
       // Pilih hanya slot yang berurutan
       const consecutiveSlots: typeof availableSlots = [];

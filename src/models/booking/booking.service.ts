@@ -9,6 +9,8 @@ import { NotificationsService } from 'src/features/notifications/notifications.s
 import { PaginatedOutputDto } from 'src/common/paginate/paginated-output.dto';
 import { RecommendationEntity } from 'src/features/recommendationRoom/serilization/recommendation.entity';
 import { GreedyRecommendation } from 'src/features/recommendationRoom/greedy-recommendation';
+import { Reflector } from '@nestjs/core';
+import { ApiResponse } from '../../common/api-response.entity';
 
 @Injectable()
 export class BookingService {
@@ -16,6 +18,7 @@ export class BookingService {
     private readonly prisma: PrismaService,
     private readonly NotificationsService: NotificationsService,
     private readonly recommendation: GreedyRecommendation,
+    private readonly reflector: Reflector,
   ) {}
 
   async getAllBooking(): Promise<BookingEntity[]> {
@@ -126,7 +129,7 @@ export class BookingService {
 
   async createBooking(
     dataBooking: CreateBookingDto,
-  ): Promise<BookingEntity | RecommendationEntity[]> {
+  ): Promise<ApiResponse<BookingEntity | RecommendationEntity[]>> {
     if (
       dataBooking.bookingSlotId.length < 1 ||
       dataBooking.bookingSlotId.length > 2
@@ -193,14 +196,20 @@ export class BookingService {
       //   'The room capacity is not enough!',
       //   HttpStatus.NOT_FOUND,
       // );
-      return this.recommendation.recommend(
+      const recommendations = this.recommendation.recommend(
         {
           roomId: dataBooking.roomId,
           participant: dataBooking.participant,
-          slots: slots,
+          slots,
         },
         rooms,
       );
+      return plainToInstance(ApiResponse, {
+        status: 'success',
+        message:
+          'Room capacity is not sufficient. Here are some recommendations:',
+        data: recommendations,
+      });
     }
     const bookedSlots = slots.filter((slot) => slot.isBooked);
     if (bookedSlots.length > 0) {
@@ -211,14 +220,30 @@ export class BookingService {
       //   `One or more slots are already booked: ${bookedSlotTimes}.`,
       //   HttpStatus.BAD_REQUEST,
       // );
-      return this.recommendation.recommend(
+      const recommendations = this.recommendation.recommend(
         {
           roomId: dataBooking.roomId,
           participant: dataBooking.participant,
-          slots: slots,
+          slots,
         },
         rooms,
       );
+
+      return plainToInstance(ApiResponse, {
+        status: 'success',
+        message:
+          'Selected slots are unavailable. Here are alternative options:',
+        data: recommendations,
+      });
+
+      // return this.recommendation.recommend(
+      //   {
+      //     roomId: dataBooking.roomId,
+      //     participant: dataBooking.participant,
+      //     slots: slots,
+      //   },
+      //   rooms,
+      // );
     }
 
     // Buat Booking
@@ -262,7 +287,11 @@ export class BookingService {
       bookingDate,
       timeSlot,
     );
-    return plainToInstance(BookingEntity, booking);
+    return plainToInstance(ApiResponse, {
+      status: 'success',
+      message: 'Booking succesfully created!',
+      data: booking,
+    });
   }
 
   async updateBooking(

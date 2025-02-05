@@ -18,6 +18,7 @@ export class RoomService {
     const roomData = await this.prisma.rooms.findMany({
       include: {
         slots: {
+          orderBy: [{ date: 'asc' }, { startTime: 'asc' }],
           where: {
             isExpired: false,
           },
@@ -91,7 +92,7 @@ export class RoomService {
 
     const today = new Date();
     const days = [today];
-    for (let i = 0; i <= 2; i++) {
+    for (let i = 1; i <= 2; i++) {
       const nextDay = new Date(today);
       nextDay.setDate(today.getDate() + i);
       days.push(nextDay);

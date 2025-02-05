@@ -63,7 +63,7 @@ export class SchedulerJobSlotService {
     );
   }
 
-  @Cron('0 0 * * * *')
+  @Cron('0 0 * * *')
   async expiredSlots(): Promise<void> {
     const nowDate = new Date();
 

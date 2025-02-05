@@ -9,6 +9,7 @@ import {
   Put,
   Query,
   Req,
+  SetMetadata,
   UseGuards,
 } from '@nestjs/common';
 import { BookingService } from './booking.service';
@@ -20,6 +21,7 @@ import { Roles } from 'src/common/roles/roles.decorator';
 import { RolesGuard } from 'src/common/roles/roles.guard';
 import { PaginatedOutputDto } from 'src/common/paginate/paginated-output.dto';
 import { RecommendationEntity } from 'src/features/recommendationRoom/serilization/recommendation.entity';
+import { ApiResponse } from '../../common/api-response.entity';
 
 @Controller({ path: 'bookings', version: '1' })
 @UseGuards(AuthGuard('jwt'))
@@ -50,9 +52,10 @@ export class BookingController {
   }
 
   @Post()
+  @SetMetadata('message', 'Booking success crated!')
   async createBooking(
     @Body() data: CreateBookingDto,
-  ): Promise<BookingEntity | RecommendationEntity[]> {
+  ): Promise<ApiResponse<BookingEntity | RecommendationEntity[]>> {
     return this.bookingService.createBooking(data);
   }
 
