@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: dockerfile
+    container_name: sirasa-service
+    ports:
+      - "3000:3000"
+    depends_on:
+      - redis
+    networks:
+      - sirasa-network
+    restart: always
+  
+  redis:
+    image: redis:alpine
+    container_name: redis
+    networks:
+      - sirasa-network
+    restart: always
+
+  networks:
+    sirasa-network:
+      driver: bridge
