@@ -23,7 +23,7 @@ services:
       - sirasa-network
     restart: always
     ports:
-      -"6379"
+      - "6379"
 
 networks:
   sirasa-network:
