@@ -3,11 +3,10 @@ FROM node:23-alpine
 WORKDIR /sirasa-service-dev
 
 COPY package*.json ./
-
-COPY ./prisma ./
+COPY prisma ./prisma
 
 RUN npm install
-RUN npx prisma generate
+RUN npx prisma generate  # Generate Prisma Client sebelum build
 
 COPY . .
 
