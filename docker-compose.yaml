@@ -11,6 +11,11 @@ services:
     networks:
       - sirasa-network
     restart: always
+    environment:
+      - TZ=Asia/Jakarta
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
     env_file:
       - .env
 
@@ -20,6 +25,11 @@ services:
     networks:
       - sirasa-network
     restart: always
+    environment:
+      - TZ=Asia/Jakarta
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
     ports:
       - "6379"
 
