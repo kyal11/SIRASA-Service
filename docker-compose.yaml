@@ -37,3 +37,6 @@ services:
 networks:
   sirasa-network:
     driver: bridge
+
+volumes:
+  redis-data:

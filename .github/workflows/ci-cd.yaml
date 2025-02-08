@@ -31,9 +31,6 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            echo "Login ke Docker Hub..."
-            docker login -u ${{ vars.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-
             echo "Memeriksa & Membuat Network..."
             docker network inspect sirasa-network >/dev/null 2>&1 || docker network create sirasa-network
 
