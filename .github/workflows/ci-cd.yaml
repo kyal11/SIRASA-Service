@@ -31,6 +31,7 @@ jobs:
       - name: Build & Push Docker Image
         run: |
           docker build -t ${{ secrets.DOCKER_USERNAME }}/sirasa-service:latest .
+          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
           docker push ${{ secrets.DOCKER_USERNAME }}/sirasa-service:latest
 
   deploy:
