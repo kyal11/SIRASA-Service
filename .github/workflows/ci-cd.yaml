@@ -64,6 +64,6 @@ jobs:
             echo "Menjalankan Container Baru..."
             docker run -d --pull=always --name sirasa-service -p 3000:3000 \
               --network sirasa-network \
-              --env-file sirasa/dev/SIRASA-Service/.env \
+              --env-file /root/sirasa/dev/SIRASA-Service/.env \
               ${{ vars.DOCKER_USERNAME }}/sirasa-service
 
