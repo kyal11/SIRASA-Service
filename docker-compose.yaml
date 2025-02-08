@@ -30,6 +30,7 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
+      - redis-data:/data
     ports:
       - "6379"
 
