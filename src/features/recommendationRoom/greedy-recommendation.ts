@@ -75,12 +75,13 @@ export class GreedyRecommendation {
             (prefSlot) => slot.startTime >= prefSlot.startTime,
           ),
       );
+      console.log(availableSlots);
       // Urutkan slot berdasarkan startTime
       availableSlots = availableSlots.sort((a, b) =>
         a.startTime.localeCompare(b.startTime),
       );
 
-      console.log(availableSlots);
+      console.log('AvaibleSlot:', availableSlots);
       // Pilih hanya slot yang berurutan
       const consecutiveSlots: typeof availableSlots = [];
       for (let i = 0; i < availableSlots.length; i++) {
@@ -113,7 +114,7 @@ export class GreedyRecommendation {
         });
       }
     }
-
+    console.log('rekomendation', recommendations);
     return recommendations;
   }
 }
