@@ -10,6 +10,7 @@ import {
   HttpStatus,
   ParseUUIDPipe,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { RoomService } from './room.service';
 import { CreateRoomDto } from './validation/create-room.dto';
@@ -28,8 +29,11 @@ export class RoomController {
   }
 
   @Get('slots')
-  async getAllRoomsWithSlots(): Promise<RoomEntity[]> {
-    return this.roomService.getAllRoomWithSlot();
+  async getAllRoomsWithSlots(
+    @Query('dayFilter') dayFilter?: string,
+  ): Promise<RoomEntity[]> {
+    const filter = dayFilter ? parseInt(dayFilter, 10) : undefined;
+    return this.roomService.getAllRoomWithSlot(filter);
   }
 
   @Get(':id')

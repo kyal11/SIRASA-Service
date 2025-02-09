@@ -14,17 +14,49 @@ export class RoomService {
     return roomData.map((data) => plainToClass(RoomEntity, data));
   }
 
-  async getAllRoomWithSlot(): Promise<RoomEntity[]> {
+  async getAllRoomWithSlot(dayFilter?: number): Promise<RoomEntity[]> {
+    let dateFilter = {};
+
+    if ([1, 2, 3].includes(dayFilter)) {
+      const now = new Date();
+      const startDate = new Date(now);
+      const endDate = new Date(now);
+
+      if (dayFilter === 1) {
+        startDate.setHours(0, 0, 0, 0);
+        endDate.setHours(23, 59, 59, 999);
+      } else if (dayFilter === 2) {
+        startDate.setDate(now.getDate() + 1);
+        startDate.setHours(0, 0, 0, 0);
+        endDate.setDate(now.getDate() + 1);
+        endDate.setHours(23, 59, 59, 999);
+      } else if (dayFilter === 3) {
+        startDate.setDate(now.getDate() + 2);
+        startDate.setHours(0, 0, 0, 0);
+        endDate.setDate(now.getDate() + 2);
+        endDate.setHours(23, 59, 59, 999);
+      }
+
+      dateFilter = {
+        date: {
+          gte: startDate.toISOString(),
+          lte: endDate.toISOString(),
+        },
+      };
+    }
+
     const roomData = await this.prisma.rooms.findMany({
       include: {
         slots: {
           orderBy: [{ date: 'asc' }, { startTime: 'asc' }],
           where: {
             isExpired: false,
+            ...dateFilter,
           },
         },
       },
     });
+
     return roomData.map((data) =>
       plainToInstance(RoomEntity, data, { excludeExtraneousValues: true }),
     );
