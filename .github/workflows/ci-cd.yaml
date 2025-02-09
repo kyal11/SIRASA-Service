@@ -41,4 +41,4 @@ jobs:
             docker compose build --parallel
 
             echo "Restarting Containers yang berubah..."
-            docker compose up -d --remove-orphans --no-deps sirasa-service
+            docker compose up -d --remove-orphans
