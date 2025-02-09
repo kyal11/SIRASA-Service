@@ -11,7 +11,7 @@ export class EmailProcessor {
     job: Job<{ email: string; name: string; verifyUrl: string }>,
   ) {
     const { email, name, verifyUrl } = job.data;
-    console.log(`Processing validation email for: ${email}`);
+    // console.log(`Processing validation email for: ${email}`);
     await this.emailService.sendVerifyEmail(email, name, verifyUrl);
   }
 
@@ -20,7 +20,7 @@ export class EmailProcessor {
     job: Job<{ email: string; name: string; resetUrl: string }>,
   ) {
     const { email, name, resetUrl } = job.data;
-    console.log(`Processing password reset email for: ${email}`);
+    // console.log(`Processing password reset email for: ${email}`);
     await this.emailService.sendEmailResetPassword(email, name, resetUrl);
   }
 }
