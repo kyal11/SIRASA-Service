@@ -37,6 +37,9 @@ jobs:
             echo "Menarik Perubahan Terbaru..."
             cd /root/sirasa/dev/SIRASA-Service && git pull origin main
 
+            echo "Membangun ulang image..."
+            docker compose build --no-cache
+            
             echo "Restarting Containers..."
             docker compose down
             docker compose up -d --remove-orphans
