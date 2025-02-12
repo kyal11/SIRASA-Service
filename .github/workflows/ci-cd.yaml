@@ -35,7 +35,7 @@ jobs:
             docker network inspect sirasa-network >/dev/null 2>&1 || docker network create sirasa-network
 
             echo "Menarik Perubahan Terbaru..."
-            cd /root/sirasa/dev/SIRASA-Service && git pull origin main
+            cd /root/app/SIRASA-Service && git pull origin main
 
             echo "Membangun ulang image"
             docker compose down
