@@ -38,7 +38,5 @@ jobs:
             cd /root/sirasa/dev/SIRASA-Service && git pull origin main
 
             echo "Membangun ulang image"
-            docker compose build --parallel
-
-            echo "Restarting Containers yang berubah..."
-            docker compose up -d --remove-orphans
+            docker compose down
+            docker compose up -d --build
