@@ -96,6 +96,7 @@ export class AuthService {
       name: user.name,
       email: user.email,
       role: user.role,
+      isVerified: user.verified,
     };
 
     const jwtToken = this.jwtService.sign(payloadJwt);
@@ -171,6 +172,7 @@ export class AuthService {
       name: user.name,
       email: user.email,
       role: user.role,
+      isVerified: user.verified,
     };
 
     const newAccessToken = this.jwtService.sign(payloadJwt);
