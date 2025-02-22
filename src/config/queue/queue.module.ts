@@ -9,6 +9,10 @@ import { EmailService } from '../email/email.service';
     BullModule.registerQueueAsync({
       name: 'queue-email',
       useFactory: () => ({
+        redis: {
+          host: process.env.REDIS_HOST,
+          port: parseInt(process.env.REDIS_PORT),
+        },
         defaultJobOptions: {
           attempts: 3,
           backoff: {
