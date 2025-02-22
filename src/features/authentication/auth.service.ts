@@ -205,8 +205,9 @@ export class AuthService {
       secret: process.env.JWT_SECRET_RESET_PASS,
       expiresIn: '1h',
     });
-
+    console.log('token: ' + payload);
     const resetUrl = `${process.env.APP_URL}/reset-password?token=${token}`;
+    console.log('reset url: ' + payload);
     await this.queueService.addJobEmail('reset-password', {
       email: email,
       name: user.name,

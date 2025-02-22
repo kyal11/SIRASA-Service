@@ -24,6 +24,8 @@ import { SchedulerJobModule } from './features/schedulerJob/scheduler-job.module
 import { SchedulerJobNotificationService } from './features/schedulerJob/scheduler-job-notifications.service';
 import { SchedulerJobSlotService } from './features/schedulerJob/scheduler-job-slot.service';
 import { GreedyRecommendation } from './features/recommendationRoom/greedy-recommendation';
+import { WinstonModule } from 'nest-winston';
+import * as winston from 'winston';
 
 @Module({
   imports: [
@@ -37,6 +39,23 @@ import { GreedyRecommendation } from './features/recommendationRoom/greedy-recom
     NotificationsModule,
     ScheduleModule.forRoot(),
     SchedulerJobModule,
+    WinstonModule.forRoot({
+      transports: [
+        new winston.transports.Console({
+          format: winston.format.combine(
+            winston.format.timestamp(),
+            winston.format.colorize(),
+            winston.format.printf(({ level, message, timestamp }) => {
+              return `[${timestamp}] ${level}: ${message}`;
+            }),
+          ),
+        }),
+        new winston.transports.File({
+          filename: 'logs/app.log',
+          level: 'info',
+        }),
+      ],
+    }),
   ],
   controllers: [AppController, AuthController, BookingController],
   providers: [
