@@ -9,6 +9,7 @@ import {
   Query,
   UseFilters,
   UseGuards,
+  Get,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './validation/login.dto';
@@ -87,7 +88,7 @@ export class AuthController {
     return await this.AuthService.sendValidateEmail(email);
   }
 
-  @Post('validate-email')
+  @Get('validate-email')
   @HttpCode(HttpStatus.OK)
   @SetMetadata('message', 'Verify account Succesfully')
   @UseGuards(AuthGuard('token-validate-email'))

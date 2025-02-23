@@ -22,6 +22,11 @@ async function bootstrap() {
   );
   app.useGlobalFilters(new ExceptionsFilter());
   app.use('/uploads', express.static(join(__dirname, '..', 'uploads')));
+  app.use('/public', express.static(join(__dirname, '..', 'public')));
+  app.use(
+    '/.well-known',
+    express.static(join(__dirname, '..', 'public/.well-known')),
+  );
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();
