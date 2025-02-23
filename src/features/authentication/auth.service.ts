@@ -263,7 +263,7 @@ export class AuthService {
       expiresIn: '1h',
     });
 
-    const validateUrl = `${process.env.APP_URL}/validate-email?token=${token}`;
+    const validateUrl = `${process.env.APP_URL}/v1/validate-email?token=${token}`;
     await this.queueService.addJobEmail('validate-account', {
       email: email,
       name: user.name,
