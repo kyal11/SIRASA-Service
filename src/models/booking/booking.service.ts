@@ -128,6 +128,7 @@ export class BookingService {
   }
 
   async createBooking(
+    userId: string,
     dataBooking: CreateBookingDto,
   ): Promise<ApiResponse<BookingEntity | RecommendationEntity[]>> {
     if (
@@ -254,7 +255,7 @@ export class BookingService {
 
     const booking = await this.prisma.bookings.create({
       data: {
-        userId: dataBooking.userId,
+        userId: userId,
         roomId: dataBooking.roomId,
         bookingSlot: {
           create: dataBooking.bookingSlotId.map((slotId) => ({ slotId })),
@@ -271,7 +272,7 @@ export class BookingService {
     });
     //Notifikasi berhasil
     const user = await this.prisma.users.findUnique({
-      where: { id: dataBooking.userId },
+      where: { id: userId },
       include: { deviceTokens: true },
     });
     const recipientTokens =

@@ -54,9 +54,11 @@ export class BookingController {
   @Post()
   @SetMetadata('message', 'Booking success crated!')
   async createBooking(
+    @Req() req: any,
     @Body() data: CreateBookingDto,
   ): Promise<ApiResponse<BookingEntity | RecommendationEntity[]>> {
-    return this.bookingService.createBooking(data);
+    const userId = req.user.userId;
+    return this.bookingService.createBooking(userId, data);
   }
 
   @Put(':id')
