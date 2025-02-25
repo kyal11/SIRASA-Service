@@ -62,15 +62,46 @@ export class RoomService {
     );
   }
 
-  async getRoomById(id: string): Promise<RoomEntity> {
+  async getRoomById(id: string, dayFilter?: number): Promise<RoomEntity> {
+    let dateFilter = {};
+
+    if ([1, 2, 3].includes(dayFilter)) {
+      const now = new Date();
+      const startDate = new Date(now);
+      const endDate = new Date(now);
+
+      if (dayFilter === 1) {
+        startDate.setHours(0, 0, 0, 0);
+        endDate.setHours(23, 59, 59, 999);
+      } else if (dayFilter === 2) {
+        startDate.setDate(now.getDate() + 1);
+        startDate.setHours(0, 0, 0, 0);
+        endDate.setDate(now.getDate() + 1);
+        endDate.setHours(23, 59, 59, 999);
+      } else if (dayFilter === 3) {
+        startDate.setDate(now.getDate() + 2);
+        startDate.setHours(0, 0, 0, 0);
+        endDate.setDate(now.getDate() + 2);
+        endDate.setHours(23, 59, 59, 999);
+      }
+
+      dateFilter = {
+        date: {
+          gte: startDate.toISOString(),
+          lte: endDate.toISOString(),
+        },
+      };
+    }
     const existingRoom = await this.prisma.rooms.findUnique({
       where: {
         id: id,
       },
       include: {
         slots: {
+          orderBy: [{ date: 'asc' }, { startTime: 'asc' }],
           where: {
             isExpired: false,
+            ...dateFilter,
           },
         },
       },
@@ -80,7 +111,9 @@ export class RoomService {
       throw new HttpException('Data Room not found!', HttpStatus.BAD_REQUEST);
     }
 
-    return plainToClass(RoomEntity, existingRoom);
+    return plainToClass(RoomEntity, existingRoom, {
+      excludeExtraneousValues: true,
+    });
   }
 
   async createRoom(roomData: CreateRoomDto): Promise<RoomEntity> {

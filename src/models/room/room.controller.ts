@@ -30,17 +30,19 @@ export class RoomController {
 
   @Get('slots')
   async getAllRoomsWithSlots(
-    @Query('dayFilter') dayFilter?: string,
+    @Query('day') day?: string,
   ): Promise<RoomEntity[]> {
-    const filter = dayFilter ? parseInt(dayFilter, 10) : undefined;
+    const filter = day ? parseInt(day, 10) : undefined;
     return this.roomService.getAllRoomWithSlot(filter);
   }
 
   @Get(':id')
   async getRoomById(
     @Param('id', ParseUUIDPipe) id: string,
+    @Query('day') day?: string,
   ): Promise<RoomEntity> {
-    return this.roomService.getRoomById(id);
+    const filter = day ? parseInt(day, 10) : undefined;
+    return this.roomService.getRoomById(id, filter);
   }
 
   @Post()
