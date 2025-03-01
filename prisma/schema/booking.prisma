@@ -6,6 +6,7 @@ model bookings {
   room       rooms      @relation(fields: [roomId], references: [id])
   bookingSlot      bookingSlot[]
   participant   Int
+  description String?
   status     statusBooking @default(booked)
   createdAt  DateTime  @default(now())
   updatedAt  DateTime @updatedAt

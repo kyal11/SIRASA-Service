@@ -261,6 +261,7 @@ export class BookingService {
           create: dataBooking.bookingSlotId.map((slotId) => ({ slotId })),
         },
         participant: dataBooking.participant,
+        description: dataBooking.description,
       },
       include: {
         bookingSlot: {
