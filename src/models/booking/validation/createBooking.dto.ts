@@ -1,4 +1,10 @@
-import { IsArray, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class CreateBookingDto {
   // @IsString()
@@ -16,4 +22,8 @@ export class CreateBookingDto {
   @IsNumber()
   @IsNotEmpty()
   participant: number;
+
+  @IsString()
+  @IsOptional()
+  description?: string;
 }
