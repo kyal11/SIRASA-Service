@@ -8,7 +8,6 @@ import { plainToClass, plainToInstance } from 'class-transformer';
 import { UserEntity } from './serialization/user.entity';
 import { PaginatedOutputDto } from 'src/common/paginate/paginated-output.dto';
 import { BookingEntity } from '../booking/serilization/booking.entity';
-import { statusBooking } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
@@ -65,7 +64,7 @@ export class UsersService {
     const dataHistory = await this.prisma.bookings.findMany({
       where: {
         userId: userId,
-        status: { in: [statusBooking.cancel, statusBooking.done] },
+        status: { in: ['cancel', 'done'] },
       },
       include: {
         room: true,
@@ -94,7 +93,7 @@ export class UsersService {
     const dataHistory = await this.prisma.bookings.findMany({
       where: {
         userId: userId,
-        status: { in: [statusBooking.booked] },
+        status: { in: ['booked'] },
       },
       include: {
         room: true,
