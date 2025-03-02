@@ -50,11 +50,6 @@ export class UsersController {
     const perPageNumber = parseInt(perPage, 10);
     return this.usersService.getAllUsersPaginate(pageNumber, perPageNumber);
   }
-  @Get(':id')
-  @SetMetadata('message', 'User details retrieved successfully')
-  async getUserById(@Param('id', ParseUUIDPipe) id: string) {
-    return await this.usersService.getUsersById(id);
-  }
 
   @Get('detail')
   @SetMetadata('message', 'User details retrieved successfully')
@@ -84,6 +79,12 @@ export class UsersController {
   @Roles('superadmin')
   async createUser(@Body() createUserDto: CreateUserDto) {
     return await this.usersService.createUser(createUserDto);
+  }
+
+  @Get(':id')
+  @SetMetadata('message', 'User details retrieved successfully')
+  async getUserById(@Param('id', ParseUUIDPipe) id: string) {
+    return await this.usersService.getUsersById(id);
   }
 
   @Put(':id')
