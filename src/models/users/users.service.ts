@@ -4,10 +4,9 @@ import { CreateUserDto } from './validation/create-user.dto';
 import * as bcrypt from 'bcrypt';
 import { UpdateUserDto } from './validation/update-user.dto';
 import { FileService } from 'src/config/upload/file-service';
-import { plainToClass, plainToInstance } from 'class-transformer';
+import { plainToClass } from 'class-transformer';
 import { UserEntity } from './serialization/user.entity';
 import { PaginatedOutputDto } from 'src/common/paginate/paginated-output.dto';
-import { BookingEntity } from '../booking/serilization/booking.entity';
 
 @Injectable()
 export class UsersService {
@@ -58,79 +57,6 @@ export class UsersService {
       },
     });
     return plainToClass(UserEntity, user);
-  }
-
-  async getUserHistoryBooking(userId: string): Promise<BookingEntity[]> {
-    console.log(`Fetching history bookings for userId: ${userId}`);
-
-    const dataHistory = await this.prisma.bookings.findMany({
-      where: {
-        userId: userId,
-        // status: { in: ['cancel', 'done'] },
-        // },
-        // include: {
-        //   room: true,
-        //   bookingSlot: {
-        //     include: {
-        //       slot: true,
-        //     },
-        //   },
-        // },
-        // orderBy: {
-        //   createdAt: 'desc',
-      },
-    });
-
-    console.log(
-      `Found ${dataHistory.length} history bookings for userId: ${userId}`,
-    );
-
-    if (dataHistory.length === 0) {
-      console.warn(`No history bookings found for userId: ${userId}`);
-
-      throw new HttpException(
-        'History Booking Not found!',
-        HttpStatus.NOT_FOUND,
-      );
-    }
-
-    return dataHistory.map((data) => plainToInstance(BookingEntity, data));
-  }
-
-  async getUserActiveBooking(userId: string): Promise<BookingEntity[]> {
-    console.log(`Fetching active bookings for userId: ${userId}`);
-
-    const dataHistory = await this.prisma.bookings.findMany({
-      where: {
-        userId: userId,
-        status: { in: ['booked'] },
-      },
-      include: {
-        room: true,
-        bookingSlot: {
-          include: {
-            slot: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
-
-    console.log(
-      `Found ${dataHistory.length} active bookings for userId: ${userId}`,
-    );
-
-    if (dataHistory.length === 0) {
-      console.warn(`No active bookings found for userId: ${userId}`);
-      throw new HttpException(
-        'History Booking Not found!',
-        HttpStatus.NOT_FOUND,
-      );
-    }
-
-    return dataHistory.map((data) => plainToInstance(BookingEntity, data));
   }
 
   async createUser(userData: CreateUserDto): Promise<UserEntity> {
