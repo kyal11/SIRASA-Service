@@ -8,6 +8,7 @@ import { plainToClass, plainToInstance } from 'class-transformer';
 import { UserEntity } from './serialization/user.entity';
 import { PaginatedOutputDto } from 'src/common/paginate/paginated-output.dto';
 import { BookingEntity } from '../booking/serilization/booking.entity';
+import { statusBooking } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
@@ -60,10 +61,40 @@ export class UsersService {
     return plainToClass(UserEntity, user);
   }
 
-  async getUserHistoryBooking(id: string): Promise<BookingEntity[]> {
+  async getUserHistoryBooking(userId: string): Promise<BookingEntity[]> {
     const dataHistory = await this.prisma.bookings.findMany({
       where: {
-        userId: id,
+        userId: userId,
+        status: { in: [statusBooking.cancel, statusBooking.done] },
+      },
+      include: {
+        room: true,
+        bookingSlot: {
+          include: {
+            slot: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    if (dataHistory.length === 0) {
+      throw new HttpException(
+        'History Booking Not found!',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return dataHistory.map((data) => plainToInstance(BookingEntity, data));
+  }
+
+  async getUserActiveBooking(userId: string): Promise<BookingEntity[]> {
+    const dataHistory = await this.prisma.bookings.findMany({
+      where: {
+        userId: userId,
+        status: { in: [statusBooking.booked] },
       },
       include: {
         room: true,
