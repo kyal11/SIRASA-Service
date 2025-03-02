@@ -66,18 +66,18 @@ export class UsersService {
     const dataHistory = await this.prisma.bookings.findMany({
       where: {
         userId: userId,
-        status: { in: ['cancel', 'done'] },
-      },
-      include: {
-        room: true,
-        bookingSlot: {
-          include: {
-            slot: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: 'desc',
+        // status: { in: ['cancel', 'done'] },
+        // },
+        // include: {
+        //   room: true,
+        //   bookingSlot: {
+        //     include: {
+        //       slot: true,
+        //     },
+        //   },
+        // },
+        // orderBy: {
+        //   createdAt: 'desc',
       },
     });
 
