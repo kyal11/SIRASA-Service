@@ -33,7 +33,7 @@ export class BookingController {
     return this.bookingService.getAllBooking();
   }
   @Get('paginate')
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  // @UseGuards(AuthGuard('jwt'), RolesGuard)
   // @Roles('superadmin', 'admin')
   async getPaginatedBookings(
     @Query('page') page: string = '1',
@@ -44,25 +44,6 @@ export class BookingController {
     return this.bookingService.getAllBookingPaginate(pageNumber, perPageNumber);
   }
 
-  @Get('history')
-  @SetMetadata('message', 'Users History successfully')
-  @UseGuards(AuthGuard('jwt'))
-  async getUserHistory(@Req() req: any) {
-    const userId = req.user.userId;
-    console.log(`GET /history called by userId: ${req.user?.userId}`);
-    console.log(`userId: ${userId}`);
-    return await this.bookingService.getUserHistoryBooking(userId);
-  }
-
-  @Get('history/active')
-  @SetMetadata('message', 'Users Active History successfully')
-  @UseGuards(AuthGuard('jwt'))
-  async getActiveHistory(@Req() req: any) {
-    const userId = req.user.userId;
-    console.log(`GET /history/active called by userId: ${req.user?.userId}`);
-    console.log(`userId: ${userId}`);
-    return await this.bookingService.getUserActiveBooking(userId);
-  }
   @Get(':id')
   async getBookingWithId(
     @Param('id', ParseUUIDPipe) id: string,
