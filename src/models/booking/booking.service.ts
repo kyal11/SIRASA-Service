@@ -9,7 +9,6 @@ import { NotificationsService } from 'src/features/notifications/notifications.s
 import { PaginatedOutputDto } from 'src/common/paginate/paginated-output.dto';
 import { RecommendationEntity } from 'src/features/recommendationRoom/serilization/recommendation.entity';
 import { GreedyRecommendation } from 'src/features/recommendationRoom/greedy-recommendation';
-import { Reflector } from '@nestjs/core';
 import { ApiResponse } from '../../common/api-response.entity';
 
 @Injectable()
@@ -18,7 +17,6 @@ export class BookingService {
     private readonly prisma: PrismaService,
     private readonly NotificationsService: NotificationsService,
     private readonly recommendation: GreedyRecommendation,
-    private readonly reflector: Reflector,
   ) {}
 
   async getAllBooking(): Promise<BookingEntity[]> {
@@ -143,7 +141,7 @@ export class BookingService {
   async getUserActiveBooking(userId: string): Promise<BookingEntity[]> {
     console.log(`Fetching active bookings for userId: ${userId}`);
 
-    const dataHistory = await this.prisma.bookings.findMany({
+    const dataHistoryActive = await this.prisma.bookings.findMany({
       where: {
         userId: userId,
         status: { in: ['booked'] },
@@ -162,10 +160,10 @@ export class BookingService {
     });
 
     console.log(
-      `Found ${dataHistory.length} active bookings for userId: ${userId}`,
+      `Found ${dataHistoryActive.length} active bookings for userId: ${userId}`,
     );
 
-    if (dataHistory.length === 0) {
+    if (dataHistoryActive.length === 0) {
       console.warn(`No active bookings found for userId: ${userId}`);
       throw new HttpException(
         'History Booking Not found!',
@@ -173,7 +171,9 @@ export class BookingService {
       );
     }
 
-    return dataHistory.map((data) => plainToInstance(BookingEntity, data));
+    return dataHistoryActive.map((data) =>
+      plainToInstance(BookingEntity, data),
+    );
   }
 
   async getBookingWithId(id: string): Promise<BookingEntity> {
