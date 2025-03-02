@@ -61,6 +61,8 @@ export class UsersService {
   }
 
   async getUserHistoryBooking(userId: string): Promise<BookingEntity[]> {
+    console.log(`Fetching history bookings for userId: ${userId}`);
+
     const dataHistory = await this.prisma.bookings.findMany({
       where: {
         userId: userId,
@@ -79,7 +81,13 @@ export class UsersService {
       },
     });
 
+    console.log(
+      `Found ${dataHistory.length} history bookings for userId: ${userId}`,
+    );
+
     if (dataHistory.length === 0) {
+      console.warn(`No history bookings found for userId: ${userId}`);
+
       throw new HttpException(
         'History Booking Not found!',
         HttpStatus.NOT_FOUND,
@@ -90,6 +98,8 @@ export class UsersService {
   }
 
   async getUserActiveBooking(userId: string): Promise<BookingEntity[]> {
+    console.log(`Fetching active bookings for userId: ${userId}`);
+
     const dataHistory = await this.prisma.bookings.findMany({
       where: {
         userId: userId,
@@ -108,7 +118,12 @@ export class UsersService {
       },
     });
 
+    console.log(
+      `Found ${dataHistory.length} active bookings for userId: ${userId}`,
+    );
+
     if (dataHistory.length === 0) {
+      console.warn(`No active bookings found for userId: ${userId}`);
       throw new HttpException(
         'History Booking Not found!',
         HttpStatus.NOT_FOUND,
@@ -117,6 +132,7 @@ export class UsersService {
 
     return dataHistory.map((data) => plainToInstance(BookingEntity, data));
   }
+
   async createUser(userData: CreateUserDto): Promise<UserEntity> {
     const { email, nim, password, role, ...anyData } = userData;
 
