@@ -70,6 +70,13 @@ export class UsersController {
     const userId = req.user.userId;
     return await this.usersService.getUserHistoryBooking(userId);
   }
+  @Get('history/active')
+  @SetMetadata('message', 'Users Active History successfully')
+  @UseGuards(AuthGuard('jwt'))
+  async getActiveHistory(@Req() req: any) {
+    const userId = req.user.userId;
+    return await this.usersService.getUserActiveBooking(userId);
+  }
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @SetMetadata('message', 'User created successfully')
