@@ -44,6 +44,22 @@ export class BookingController {
     return this.bookingService.getAllBookingPaginate(pageNumber, perPageNumber);
   }
 
+  @Get('history')
+  async getUserHistory(@Req() req: any) {
+    const userId = req.user.userId;
+    console.log(`GET /history called by userId: ${req.user?.userId}`);
+    console.log(`userId: ${userId}`);
+    return await this.bookingService.getUserHistoryBooking(userId);
+  }
+
+  @Get('history/active')
+  async getActiveHistory(@Req() req: any) {
+    const userId = req.user.userId;
+    console.log(`GET /history/active called by userId: ${req.user?.userId}`);
+    console.log(`userId: ${userId}`);
+    return await this.bookingService.getUserActiveBooking(userId);
+  }
+
   @Get(':id')
   async getBookingWithId(
     @Param('id', ParseUUIDPipe) id: string,
