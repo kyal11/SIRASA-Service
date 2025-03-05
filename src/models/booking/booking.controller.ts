@@ -23,8 +23,8 @@ import { PaginatedOutputDto } from 'src/common/paginate/paginated-output.dto';
 import { RecommendationEntity } from 'src/features/recommendationRoom/serilization/recommendation.entity';
 import { ApiResponse } from '../../common/api-response.entity';
 
-@Controller({ path: 'bookings', version: '1' })
 @UseGuards(AuthGuard('jwt'))
+@Controller({ path: 'bookings', version: '1' })
 export class BookingController {
   constructor(private readonly bookingService: BookingService) {}
 
@@ -32,9 +32,8 @@ export class BookingController {
   async getAllBooking(): Promise<BookingEntity[]> {
     return this.bookingService.getAllBooking();
   }
+
   @Get('paginate')
-  // @UseGuards(AuthGuard('jwt'), RolesGuard)
-  // @Roles('superadmin', 'admin')
   async getPaginatedBookings(
     @Query('page') page: string = '1',
     @Query('perPage') perPage: string = '10',
