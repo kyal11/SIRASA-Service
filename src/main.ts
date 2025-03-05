@@ -20,7 +20,7 @@ async function bootstrap() {
     new ResponseInterceptor(reflector),
     new GlobalContentTypeInterceptor(),
   );
-  // app.useGlobalFilters(new ExceptionsFilter());
+  app.useGlobalFilters(new ExceptionsFilter());
   app.use('/uploads', express.static(join(__dirname, '..', 'uploads')));
   app.use('/public', express.static(join(__dirname, '..', 'public')));
   app.use(

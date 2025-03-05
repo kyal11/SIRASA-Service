@@ -279,7 +279,7 @@ export class BookingService {
         rooms,
       );
       return plainToInstance(ApiResponse, {
-        status: 'success',
+        status: 'recommendation',
         message:
           'Room capacity is not sufficient. Here are some recommendations:',
         data: recommendations,
@@ -304,7 +304,7 @@ export class BookingService {
       );
 
       return plainToInstance(ApiResponse, {
-        status: 'success',
+        status: 'recommendation',
         message:
           'Selected slots are unavailable. Here are alternative options:',
         data: recommendations,

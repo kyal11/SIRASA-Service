@@ -71,12 +71,26 @@ export class UsersController {
     return await this.usersService.getUsersById(id);
   }
 
+  @Put('')
+  @HttpCode(HttpStatus.OK)
+  @UseInterceptors(FileInterceptor('image_url'))
+  @SetMetadata('message', 'Account updated successfully')
+  @UseGuards(AuthGuard('jwt'))
+  async updateAccountUser(
+    @Req() req: any,
+    @Body() updateUserDto: UpdateUserDto,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    const userId = req.user.userId;
+    return await this.usersService.updateUser(userId, updateUserDto, file);
+  }
+
   @Put(':id')
   @HttpCode(HttpStatus.OK)
   @UseInterceptors(FileInterceptor('image_url'))
   @SetMetadata('message', 'User updated successfully')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('superadmin')
+  @Roles('superadmin', 'admin')
   async updateUser(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateUserDto: UpdateUserDto,
