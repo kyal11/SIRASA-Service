@@ -321,11 +321,6 @@ export class BookingService {
     }
 
     // Buat Booking
-    await this.prisma.slots.updateMany({
-      where: { id: { in: dataBooking.bookingSlotId } },
-      data: { isBooked: true },
-    });
-
     const booking = await this.prisma.bookings.create({
       data: {
         userId: userId,
@@ -337,12 +332,17 @@ export class BookingService {
         description: dataBooking.description,
       },
       include: {
+        user: true,
         bookingSlot: {
           include: {
             slot: true,
           },
         },
       },
+    });
+    await this.prisma.slots.updateMany({
+      where: { id: { in: dataBooking.bookingSlotId } },
+      data: { isBooked: true },
     });
     //Notifikasi berhasil
     const user = await this.prisma.users.findUnique({
@@ -452,11 +452,20 @@ export class BookingService {
         updatedAt: new Date(),
       },
       include: {
+        user: true,
         bookingSlot: true,
       },
     });
 
-    return plainToInstance(BookingEntity, updatedBooking);
+    return plainToInstance(
+      BookingEntity,
+      {
+        ...updatedBooking,
+        userName: updatedBooking.user.name,
+        phoneNumber: updatedBooking.user.phoneNumber,
+      },
+      { excludeExtraneousValues: true },
+    );
   }
 
   async updateStatusBooking(

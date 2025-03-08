@@ -86,7 +86,7 @@ export class NotificationsService {
   ): Promise<void> {
     const message = `Peminjaman Anda berhasil! ${roomName} telah dipesan untuk tanggal ${bookingDate}, pukul ${timeSlot}. Silakan validasi QR code Anda sebelum ${this.calculateDeadline(timeSlot)} untuk menghindari pembatalan otomatis.`;
     await this.sendNotification(
-      'Konfirmasi Peminjaman',
+      'Peminjaman Berhasil',
       message,
       recipient,
       icon,
