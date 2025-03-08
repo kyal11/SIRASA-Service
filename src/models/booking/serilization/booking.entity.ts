@@ -12,6 +12,12 @@ export class BookingEntity {
   userId: string;
 
   @Expose()
+  userName: string;
+
+  @Expose()
+  phoneNumber: string;
+
+  @Expose()
   @Type(() => UserEntity)
   user: UserEntity;
 
