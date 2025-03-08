@@ -333,6 +333,7 @@ export class BookingService {
       },
       include: {
         user: true,
+        room: true,
         bookingSlot: {
           include: {
             slot: true,
@@ -362,6 +363,7 @@ export class BookingService {
       bookingDate,
       timeSlot,
     );
+
     return plainToInstance(ApiResponse, {
       status: 'success',
       message: 'Booking succesfully created!',
