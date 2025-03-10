@@ -24,6 +24,7 @@ import { SchedulerJobSlotService } from './features/schedulerJob/scheduler-job-s
 import { GreedyRecommendation } from './features/recommendationRoom/greedy-recommendation';
 import { WinstonModule } from 'nest-winston';
 import * as winston from 'winston';
+import { DashboardBookingService } from './models/booking/dashboard-booking.service';
 
 @Module({
   imports: [
@@ -64,6 +65,7 @@ import * as winston from 'winston';
     RedisService,
     EmailService,
     BookingService,
+    DashboardBookingService,
     QueueService,
     SchedulerJobNotificationService,
     SchedulerJobSlotService,

@@ -22,11 +22,15 @@ import { RolesGuard } from 'src/common/roles/roles.guard';
 import { PaginatedOutputDto } from 'src/common/paginate/paginated-output.dto';
 import { RecommendationEntity } from 'src/features/recommendationRoom/serilization/recommendation.entity';
 import { ApiResponse } from '../../common/api-response.entity';
+import { DashboardBookingService } from './dashboard-booking.service';
 
 @UseGuards(AuthGuard('jwt'))
 @Controller({ path: 'bookings', version: '1' })
 export class BookingController {
-  constructor(private readonly bookingService: BookingService) {}
+  constructor(
+    private readonly bookingService: BookingService,
+    private readonly dashboardBookingService: DashboardBookingService,
+  ) {}
 
   @Get()
   async getAllBooking(): Promise<BookingEntity[]> {
@@ -59,6 +63,19 @@ export class BookingController {
     return await this.bookingService.getUserActiveBooking(userId);
   }
 
+  @Get('summary')
+  async getSummaryBooking(@Query('day') day?: string): Promise<
+    ApiResponse<{
+      totalBookings: number;
+      canceledBookings: number;
+      bookedBookings: number;
+      doneBookings: number;
+      totalRooms: number;
+    }>
+  > {
+    const dayFilter = day ? parseInt(day, 10) : undefined;
+    return this.dashboardBookingService.countBooking(dayFilter);
+  }
   @Get(':id')
   async getBookingWithId(
     @Param('id', ParseUUIDPipe) id: string,
