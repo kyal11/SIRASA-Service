@@ -6,6 +6,7 @@ import { PrismaService } from 'src/config/prisma/prisma.service';
 import { BookingController } from './booking.controller';
 import { NotificationsModule } from 'src/features/notifications/notifications.module';
 import { GreedyRecommendation } from 'src/features/recommendationRoom/greedy-recommendation';
+import { DashboardBookingService } from './dashboard-booking.service';
 
 @Module({
   imports: [NotificationsModule],
@@ -13,6 +14,7 @@ import { GreedyRecommendation } from 'src/features/recommendationRoom/greedy-rec
     RoomService,
     SlotService,
     BookingService,
+    DashboardBookingService,
     PrismaService,
     GreedyRecommendation,
   ],
