@@ -34,6 +34,14 @@ jobs:
             echo "Menarik Perubahan Terbaru..."
             cd /root/app/SIRASA-Service && git pull origin main
 
+            echo "Membuat folder public, uploads, dan logs..."
+            mkdir -p /root/app/SIRASA-Service/public
+            mkdir -p /root/app/SIRASA-Service/uploads
+            mkdir -p /root/app/SIRASA-Service/logs
+            sudo chown -R 1000:1000 /root/app/SIRASA-Service/public
+            sudo chown -R 1000:1000 /root/app/SIRASA-Service/uploads
+            sudo chown -R 1000:1000 /root/app/SIRASA-Service/logs
+            
             echo "Membangun ulang image"
             docker compose down
             docker compose up -d --build
