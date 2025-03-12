@@ -6,6 +6,9 @@ COPY package*.json ./
 COPY prisma ./prisma
 
 RUN npm install
+RUN npm config set legacy-peer-deps true
+RUN npm cache clean --force
+
 RUN npx prisma generate
 
 COPY . .
