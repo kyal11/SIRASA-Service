@@ -25,6 +25,8 @@ import { GreedyRecommendation } from './features/recommendationRoom/greedy-recom
 import { WinstonModule } from 'nest-winston';
 import * as winston from 'winston';
 import { DashboardBookingService } from './models/booking/dashboard-booking.service';
+import { BookingGateway } from './models/booking/booking-gateway';
+import { BaseWebSocketGateway } from './base.gateaway';
 
 @Module({
   imports: [
@@ -70,6 +72,8 @@ import { DashboardBookingService } from './models/booking/dashboard-booking.serv
     SchedulerJobNotificationService,
     SchedulerJobSlotService,
     GreedyRecommendation,
+    BookingGateway,
+    BaseWebSocketGateway,
   ],
 })
 export class AppModule {}

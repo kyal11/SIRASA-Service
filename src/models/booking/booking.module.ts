@@ -7,6 +7,9 @@ import { BookingController } from './booking.controller';
 import { NotificationsModule } from 'src/features/notifications/notifications.module';
 import { GreedyRecommendation } from 'src/features/recommendationRoom/greedy-recommendation';
 import { DashboardBookingService } from './dashboard-booking.service';
+import { BookingGateway } from './booking-gateway';
+import { RedisService } from 'src/config/redis/redis.service';
+import { JwtService } from '@nestjs/jwt';
 
 @Module({
   imports: [NotificationsModule],
@@ -17,6 +20,9 @@ import { DashboardBookingService } from './dashboard-booking.service';
     DashboardBookingService,
     PrismaService,
     GreedyRecommendation,
+    BookingGateway,
+    RedisService,
+    JwtService,
   ],
   controllers: [BookingController],
 })
