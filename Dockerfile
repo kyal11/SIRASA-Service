@@ -5,9 +5,9 @@ WORKDIR /sirasa-service-dev
 COPY package*.json ./
 COPY prisma ./prisma
 
-RUN npm install
 RUN npm config set legacy-peer-deps true
 RUN npm cache clean --force
+RUN npm install
 
 RUN npx prisma generate
 
