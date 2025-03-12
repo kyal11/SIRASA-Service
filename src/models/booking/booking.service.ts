@@ -10,6 +10,7 @@ import { PaginatedOutputDto } from 'src/common/paginate/paginated-output.dto';
 import { RecommendationEntity } from 'src/features/recommendationRoom/serilization/recommendation.entity';
 import { GreedyRecommendation } from 'src/features/recommendationRoom/greedy-recommendation';
 import { ApiResponse } from '../../common/api-response.entity';
+import { BookingGateway } from './booking-gateway';
 
 @Injectable()
 export class BookingService {
@@ -17,6 +18,7 @@ export class BookingService {
     private readonly prisma: PrismaService,
     private readonly NotificationsService: NotificationsService,
     private readonly recommendation: GreedyRecommendation,
+    private readonly bookingGateway: BookingGateway,
   ) {}
 
   async getAllBooking(): Promise<BookingEntity[]> {
@@ -478,9 +480,15 @@ export class BookingService {
       where: { id },
       include: { user: { include: { deviceTokens: true } }, room: true },
     });
-    if (!booking || booking.status == statusBooking.done) {
+    if (!booking) {
       throw new HttpException(
-        'Booking not found or already completed.',
+        'Peminjaman tidak ditemukan!',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    if (booking.status == statusBooking.done) {
+      throw new HttpException(
+        'Peminjaman telah selesai!',
         HttpStatus.NOT_FOUND,
       );
     }
@@ -490,6 +498,14 @@ export class BookingService {
       },
       data: {
         status: statusBooking.done,
+      },
+      include: {
+        bookingSlot: {
+          include: {
+            slot: true,
+          },
+        },
+        room: true,
       },
     });
 
@@ -513,6 +529,10 @@ export class BookingService {
       booking.room.name,
       new Date().toLocaleTimeString(),
       booking.user.name,
+    );
+    this.bookingGateway.sendBookingUpdate(
+      updatedBooking.userId,
+      updatedBooking,
     );
     return plainToInstance(BookingEntity, updatedBooking);
   }
