@@ -27,6 +27,7 @@ import * as winston from 'winston';
 import { DashboardBookingService } from './models/booking/dashboard-booking.service';
 import { BookingGateway } from './models/booking/booking-gateway';
 import { BaseWebSocketGateway } from './base.gateaway';
+import { CrmModule } from './features/crm/crm.module';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { BaseWebSocketGateway } from './base.gateaway';
         }),
       ],
     }),
+    CrmModule,
   ],
   controllers: [AuthController, BookingController],
   providers: [

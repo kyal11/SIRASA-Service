@@ -11,6 +11,7 @@ export class BookingGateway extends BaseWebSocketGateway {
   }
 
   sendBookingUpdate(userId: string, bookingData: any) {
+    console.log(`Emitting event to user-${userId}:`, bookingData);
     this.server.to(`user-${userId}`).emit('bookingUpdated', bookingData);
   }
 }
