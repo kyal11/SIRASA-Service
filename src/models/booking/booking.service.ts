@@ -505,6 +505,7 @@ export class BookingService {
             slot: true,
           },
         },
+        user: true,
         room: true,
       },
     });

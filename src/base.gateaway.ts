@@ -8,7 +8,7 @@ import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { RedisService } from 'src/config/redis/redis.service';
 
-@WebSocketGateway({path: '/socket.io/'})
+@WebSocketGateway({ path: '/socket.io/' })
 export class BaseWebSocketGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
