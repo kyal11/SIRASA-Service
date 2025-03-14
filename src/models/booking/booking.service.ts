@@ -4,7 +4,7 @@ import { BookingEntity } from './serilization/booking.entity';
 import { plainToInstance } from 'class-transformer';
 import { CreateBookingDto } from './validation/createBooking.dto';
 import { UpdateBookingDto } from './validation/updateBooking.dto';
-import { statusBooking } from '@prisma/client';
+import { Prisma, statusBooking } from '@prisma/client';
 import { NotificationsService } from 'src/features/notifications/notifications.service';
 import { PaginatedOutputDto } from 'src/common/paginate/paginated-output.dto';
 import { RecommendationEntity } from 'src/features/recommendationRoom/serilization/recommendation.entity';
@@ -55,12 +55,40 @@ export class BookingService {
   async getAllBookingPaginate(
     page: number = 1,
     perPage: number = 10,
+    startDate?: string,
+    endDate?: string,
+    status?: 'cancel' | 'booked' | 'done',
   ): Promise<PaginatedOutputDto<BookingEntity>> {
-    const total = await this.prisma.bookings.count();
     const skip = (page - 1) * perPage;
+
+    const filters: Prisma.bookingsWhereInput = {};
+
+    if (startDate && endDate) {
+      filters.createdAt = {
+        gte: new Date(startDate),
+        lte: new Date(endDate),
+      };
+    } else if (startDate) {
+      filters.createdAt = { gte: new Date(startDate) };
+    } else if (endDate) {
+      filters.createdAt = { lte: new Date(endDate) };
+    }
+
+    if (status) {
+      filters.status = status;
+    }
+
+    const total = await this.prisma.bookings.count({
+      where: filters,
+    });
+
     const dataBooking = await this.prisma.bookings.findMany({
+      where: filters,
       skip: skip,
       take: perPage,
+      orderBy: {
+        createdAt: 'desc',
+      },
       include: {
         room: true,
         bookingSlot: {
@@ -70,7 +98,6 @@ export class BookingService {
         },
       },
     });
-
     const bookings = dataBooking.map((data) =>
       plainToInstance(
         BookingEntity,
@@ -103,6 +130,7 @@ export class BookingService {
       },
     };
   }
+
   async getUserHistoryBooking(userId: string): Promise<BookingEntity[]> {
     console.log(`Fetching history bookings for userId: ${userId}`);
 
@@ -176,6 +204,118 @@ export class BookingService {
     return dataHistoryActive.map((data) =>
       plainToInstance(BookingEntity, data),
     );
+  }
+
+  async getUserHistoryBookingPaginate(
+    userId: string,
+    page: number = 1,
+    perPage: number = 10,
+  ): Promise<PaginatedOutputDto<BookingEntity>> {
+    console.log(`Fetching paginated history bookings for userId: ${userId}`);
+
+    const skip = (page - 1) * perPage;
+
+    const total = await this.prisma.bookings.count({
+      where: {
+        userId: userId,
+        status: { in: ['cancel', 'done'] },
+      },
+    });
+
+    const dataHistory = await this.prisma.bookings.findMany({
+      where: {
+        userId: userId,
+        status: { in: ['cancel', 'done'] },
+      },
+      include: {
+        room: true,
+        bookingSlot: {
+          include: {
+            slot: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      skip: skip,
+      take: perPage,
+    });
+
+    console.log(
+      `Found ${dataHistory.length} paginated history bookings for userId: ${userId}`,
+    );
+
+    const lastPage = Math.ceil(total / perPage);
+
+    return {
+      data: dataHistory.map((data) => plainToInstance(BookingEntity, data)),
+      meta: {
+        total,
+        lastPage,
+        currentPage: page,
+        perPage,
+        prev: page > 1 ? page - 1 : null,
+        next: page < lastPage ? page + 1 : null,
+      },
+    };
+  }
+
+  async getUserActiveBookingPaginate(
+    userId: string,
+    page: number = 1,
+    perPage: number = 10,
+  ): Promise<PaginatedOutputDto<BookingEntity>> {
+    console.log(`Fetching paginated active bookings for userId: ${userId}`);
+
+    const skip = (page - 1) * perPage;
+
+    const total = await this.prisma.bookings.count({
+      where: {
+        userId: userId,
+        status: 'booked',
+      },
+    });
+
+    const dataHistoryActive = await this.prisma.bookings.findMany({
+      where: {
+        userId: userId,
+        status: 'booked',
+      },
+      include: {
+        room: true,
+        bookingSlot: {
+          include: {
+            slot: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      skip: skip,
+      take: perPage,
+    });
+
+    console.log(
+      `Found ${dataHistoryActive.length} paginated active bookings for userId: ${userId}`,
+    );
+
+    const lastPage = Math.ceil(total / perPage);
+
+    return {
+      data: dataHistoryActive.map((data) =>
+        plainToInstance(BookingEntity, data),
+      ),
+      meta: {
+        total,
+        lastPage,
+        currentPage: page,
+        perPage,
+        prev: page > 1 ? page - 1 : null,
+        next: page < lastPage ? page + 1 : null,
+      },
+    };
   }
 
   async getBookingWithId(id: string): Promise<BookingEntity> {

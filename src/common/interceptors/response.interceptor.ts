@@ -27,13 +27,29 @@ export class ResponseInterceptor implements NestInterceptor {
         ) {
           return data;
         }
+
+        if (
+          data &&
+          typeof data === 'object' &&
+          'data' in data &&
+          'meta' in data
+        ) {
+          return {
+            status: 'success',
+            message: message,
+            ...data,
+          };
+        }
+
         const response: any = {
           status: 'success',
           message: message,
         };
+
         if (data !== null && data !== undefined) {
           response.data = data;
         }
+
         return response;
       }),
     );

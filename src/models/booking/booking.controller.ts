@@ -41,10 +41,22 @@ export class BookingController {
   async getPaginatedBookings(
     @Query('page') page: string = '1',
     @Query('perPage') perPage: string = '10',
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @Query('status') status?: 'cancel' | 'booked' | 'done',
   ): Promise<PaginatedOutputDto<BookingEntity>> {
-    const pageNumber = parseInt(page, 10);
-    const perPageNumber = parseInt(perPage, 10);
-    return this.bookingService.getAllBookingPaginate(pageNumber, perPageNumber);
+    const pageNumber = isNaN(parseInt(page, 10)) ? 1 : parseInt(page, 10);
+    const perPageNumber = isNaN(parseInt(perPage, 10))
+      ? 10
+      : parseInt(perPage, 10);
+
+    return this.bookingService.getAllBookingPaginate(
+      pageNumber,
+      perPageNumber,
+      startDate,
+      endDate,
+      status,
+    );
   }
 
   @Get('history')
@@ -63,6 +75,39 @@ export class BookingController {
     return await this.bookingService.getUserActiveBooking(userId);
   }
 
+  @Get('history/paginate')
+  async getUserHistoryPaginate(
+    @Req() req: any,
+    @Query('page') page: string = '1',
+    @Query('perPage') perPage: string = '10',
+  ) {
+    const userId = req.user.userId;
+    const pageNumber = parseInt(page, 10);
+    const perPageNumber = parseInt(perPage, 10);
+
+    return await this.bookingService.getUserHistoryBookingPaginate(
+      userId,
+      pageNumber,
+      perPageNumber,
+    );
+  }
+
+  @Get('history/active/paginate')
+  async getUserActiveHistoryPaginate(
+    @Req() req: any,
+    @Query('page') page: string = '1',
+    @Query('perPage') perPage: string = '10',
+  ) {
+    const userId = req.user.userId;
+    const pageNumber = parseInt(page, 10);
+    const perPageNumber = parseInt(perPage, 10);
+
+    return await this.bookingService.getUserActiveBookingPaginate(
+      userId,
+      pageNumber,
+      perPageNumber,
+    );
+  }
   @Get('summary')
   async getSummaryBooking(@Query('day') day?: string): Promise<
     ApiResponse<{

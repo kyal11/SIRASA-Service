@@ -42,10 +42,17 @@ export class UsersController {
   async getPaginatedUsers(
     @Query('page') page: string = '1',
     @Query('perPage') perPage: string = '10',
+    @Query('search') search?: string,
+    @Query('role') role?: string,
   ): Promise<PaginatedOutputDto<UserEntity>> {
     const pageNumber = parseInt(page, 10);
     const perPageNumber = parseInt(perPage, 10);
-    return this.usersService.getAllUsersPaginate(pageNumber, perPageNumber);
+    return this.usersService.getAllUsersPaginate(
+      pageNumber,
+      perPageNumber,
+      search,
+      role,
+    );
   }
 
   @Get('detail')

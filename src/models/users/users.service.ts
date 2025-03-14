@@ -27,13 +27,41 @@ export class UsersService {
   async getAllUsersPaginate(
     page: number = 1,
     perPage: number = 10,
+    search?: string,
+    role?: string,
   ): Promise<PaginatedOutputDto<UserEntity>> {
-    const total = await this.prisma.users.count();
     const skip = (page - 1) * perPage;
+
+    // Buat filter untuk Prisma berdasarkan parameter yang dikirim
+    const filters: any = {};
+
+    if (search) {
+      filters.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { email: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+
+    if (role) {
+      filters.role = role;
+    }
+
+    // Hitung total user dengan filter
+    const total = await this.prisma.users.count({
+      where: filters,
+    });
+
+    // Ambil data user dengan filter, pagination, dan sorting (misalnya terbaru dulu)
     const data = await this.prisma.users.findMany({
+      where: filters,
       skip: skip,
       take: perPage,
+      orderBy: {
+        createdAt: 'desc',
+      },
     });
+
+    // Konversi ke DTO
     const users = data.map((user) => plainToClass(UserEntity, user));
     const lastPage = Math.ceil(total / perPage);
 
