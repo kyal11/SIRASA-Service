@@ -23,6 +23,7 @@ export class BookingSlotEntity {
   @Type(() => SlotEntity)
   slot: SlotEntity;
 
+  @Expose()
   createdAt: Date;
 
   updatedAt: Date;
