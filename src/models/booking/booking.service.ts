@@ -90,6 +90,7 @@ export class BookingService {
         createdAt: 'desc',
       },
       include: {
+        user: true,
         room: true,
         bookingSlot: {
           include: {
@@ -103,6 +104,7 @@ export class BookingService {
         BookingEntity,
         {
           ...data,
+          userName: data.user?.name,
           roomName: data.room?.name,
           roomCapacity: data.room?.capacity,
           slots: data.bookingSlot.map((slot) => ({
@@ -110,6 +112,7 @@ export class BookingService {
             slotId: slot.slot.id,
             startTime: slot.slot.startTime,
             endTime: slot.slot.endTime,
+            createdAt: slot.slot.createdAt,
           })),
         },
         { excludeExtraneousValues: true },

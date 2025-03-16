@@ -67,7 +67,7 @@ export class UsersController {
   @HttpCode(HttpStatus.CREATED)
   @SetMetadata('message', 'User created successfully')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('superadmin')
+  @Roles('superadmin, admin')
   async createUser(@Body() createUserDto: CreateUserDto) {
     return await this.usersService.createUser(createUserDto);
   }
