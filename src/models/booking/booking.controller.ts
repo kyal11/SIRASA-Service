@@ -41,6 +41,7 @@ export class BookingController {
   async getPaginatedBookings(
     @Query('page') page: string = '1',
     @Query('perPage') perPage: string = '10',
+    @Query('search') search?: string,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
     @Query('status') status?: 'cancel' | 'booked' | 'done',
@@ -53,6 +54,7 @@ export class BookingController {
     return this.bookingService.getAllBookingPaginate(
       pageNumber,
       perPageNumber,
+      search,
       startDate,
       endDate,
       status,

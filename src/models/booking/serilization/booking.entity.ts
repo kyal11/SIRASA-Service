@@ -17,7 +17,7 @@ export class BookingEntity {
   @Expose()
   phoneNumber: string;
 
-  @Expose()
+  // @Expose()
   @Type(() => UserEntity)
   user: UserEntity;
 
@@ -39,6 +39,9 @@ export class BookingEntity {
 
   @Expose()
   status: statusBooking;
+
+  @Expose()
+  description: string;
 
   @Expose()
   createdAt: Date;
