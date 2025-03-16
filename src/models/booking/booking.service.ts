@@ -55,7 +55,8 @@ export class BookingService {
   async getAllBookingPaginate(
     page: number = 1,
     perPage: number = 10,
-    startDate?: string,
+    search?: string, // Untuk userName & roomName
+    startDate?: string, // Untuk filter berdasarkan bookingSlot.slot.createdAt
     endDate?: string,
     status?: 'cancel' | 'booked' | 'done',
   ): Promise<PaginatedOutputDto<BookingEntity>> {
@@ -63,25 +64,39 @@ export class BookingService {
 
     const filters: Prisma.bookingsWhereInput = {};
 
-    if (startDate && endDate) {
-      filters.createdAt = {
-        gte: new Date(startDate),
-        lte: new Date(endDate),
-      };
-    } else if (startDate) {
-      filters.createdAt = { gte: new Date(startDate) };
-    } else if (endDate) {
-      filters.createdAt = { lte: new Date(endDate) };
+    // 🔹 Filter pencarian berdasarkan userName atau roomName
+    if (search) {
+      filters.OR = [
+        { user: { name: { contains: search, mode: 'insensitive' } } },
+        { room: { name: { contains: search, mode: 'insensitive' } } },
+      ];
     }
 
+    // 🔹 Filter berdasarkan status booking
     if (status) {
       filters.status = status;
     }
 
+    // 🔹 Filter berdasarkan tanggal bookingSlot.slot.createdAt
+    if (startDate || endDate) {
+      filters.bookingSlot = {
+        some: {
+          slot: {
+            createdAt: {
+              ...(startDate ? { gte: new Date(startDate) } : {}),
+              ...(endDate ? { lte: new Date(endDate) } : {}),
+            },
+          },
+        },
+      };
+    }
+
+    // 🔹 Hitung total hasil pencarian
     const total = await this.prisma.bookings.count({
       where: filters,
     });
 
+    // 🔹 Ambil data bookings
     const dataBooking = await this.prisma.bookings.findMany({
       where: filters,
       skip: skip,
@@ -99,6 +114,8 @@ export class BookingService {
         },
       },
     });
+
+    // 🔹 Transformasi data untuk response
     const bookings = dataBooking.map((data) =>
       plainToInstance(
         BookingEntity,
