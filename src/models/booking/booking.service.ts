@@ -21,9 +21,53 @@ export class BookingService {
     private readonly bookingGateway: BookingGateway,
   ) {}
 
-  async getAllBooking(): Promise<BookingEntity[]> {
+  async getAllBooking(
+    startDate?: string,
+    endDate?: string,
+  ): Promise<BookingEntity[]> {
+    const parseDate = (dateString: string): Date | null => {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(dateString)) return null;
+      const date = new Date(dateString);
+      return isNaN(date.getTime()) ? null : date;
+    };
+
+    const start = startDate ? parseDate(startDate) : null;
+    const end = endDate ? parseDate(endDate) : null;
+
+    if (startDate && !start) {
+      throw new Error('Invalid startDate format. Use YYYY-MM-DD');
+    }
+    if (endDate && !end) {
+      throw new Error('Invalid endDate format. Use YYYY-MM-DD');
+    }
+
+    if (start && end && start.toDateString() === end.toDateString()) {
+      start.setHours(0, 0, 0, 0);
+      end.setHours(23, 59, 59, 999);
+    } else {
+      if (start) start.setHours(0, 0, 0, 0);
+      if (end) end.setHours(23, 59, 59, 999);
+    }
+
+    const whereCondition: Prisma.bookingsWhereInput = {};
+
+    if (start || end) {
+      whereCondition.bookingSlot = {
+        some: {
+          slot: {
+            createdAt: {
+              ...(start ? { gte: start } : {}),
+              ...(end ? { lte: end } : {}),
+            },
+          },
+        },
+      };
+    }
+
     const dataBooking = await this.prisma.bookings.findMany({
+      where: whereCondition,
       include: {
+        user: true,
         room: true,
         bookingSlot: {
           include: {
@@ -38,6 +82,8 @@ export class BookingService {
         BookingEntity,
         {
           ...data,
+          userName: data.user?.name,
+          userNim: data.user?.nim,
           roomName: data.room?.name,
           roomCapacity: data.room?.capacity,
           slots: data.bookingSlot.map((slot) => ({
@@ -45,6 +91,7 @@ export class BookingService {
             slotId: slot.slot.id,
             startTime: slot.slot.startTime,
             endTime: slot.slot.endTime,
+            createdAt: slot.slot.createdAt,
           })),
         },
         { excludeExtraneousValues: true },
@@ -55,8 +102,8 @@ export class BookingService {
   async getAllBookingPaginate(
     page: number = 1,
     perPage: number = 10,
-    search?: string, // Untuk userName & roomName
-    startDate?: string, // Untuk filter berdasarkan bookingSlot.slot.createdAt
+    search?: string,
+    startDate?: string,
     endDate?: string,
     status?: 'cancel' | 'booked' | 'done',
   ): Promise<PaginatedOutputDto<BookingEntity>> {
@@ -77,14 +124,52 @@ export class BookingService {
       filters.status = status;
     }
 
+    // 🔹 Fungsi parsing tanggal dengan validasi
+    const parseDate = (dateString: string): Date | null => {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(dateString)) return null;
+      const parsedDate = new Date(dateString);
+      return isNaN(parsedDate.getTime()) ? null : parsedDate;
+    };
+
+    const parsedStartDate = startDate ? parseDate(startDate) : null;
+    const parsedEndDate = endDate ? parseDate(endDate) : null;
+
+    if (startDate && !parsedStartDate) {
+      throw new Error('Invalid startDate format. Use YYYY-MM-DD');
+    }
+
+    if (endDate && !parsedEndDate) {
+      throw new Error('Invalid endDate format. Use YYYY-MM-DD');
+    }
+
+    // 🔹 Jika hanya startDate, set waktu awal hari
+    if (parsedStartDate) {
+      parsedStartDate.setHours(0, 0, 0, 0);
+    }
+
+    // 🔹 Jika hanya endDate, set waktu akhir hari
+    if (parsedEndDate) {
+      parsedEndDate.setHours(23, 59, 59, 999);
+    }
+
+    // 🔹 Jika startDate == endDate, ambil range satu hari penuh
+    if (
+      parsedStartDate &&
+      parsedEndDate &&
+      parsedStartDate.getTime() === parsedEndDate.getTime()
+    ) {
+      parsedStartDate.setHours(0, 0, 0, 0);
+      parsedEndDate.setHours(23, 59, 59, 999);
+    }
+
     // 🔹 Filter berdasarkan tanggal bookingSlot.slot.createdAt
-    if (startDate || endDate) {
+    if (parsedStartDate || parsedEndDate) {
       filters.bookingSlot = {
         some: {
           slot: {
             createdAt: {
-              ...(startDate ? { gte: new Date(startDate) } : {}),
-              ...(endDate ? { lte: new Date(endDate) } : {}),
+              ...(parsedStartDate ? { gte: parsedStartDate } : {}),
+              ...(parsedEndDate ? { lte: parsedEndDate } : {}),
             },
           },
         },
@@ -92,9 +177,7 @@ export class BookingService {
     }
 
     // 🔹 Hitung total hasil pencarian
-    const total = await this.prisma.bookings.count({
-      where: filters,
-    });
+    const total = await this.prisma.bookings.count({ where: filters });
 
     // 🔹 Ambil data bookings
     const dataBooking = await this.prisma.bookings.findMany({
@@ -122,6 +205,7 @@ export class BookingService {
         {
           ...data,
           userName: data.user?.name,
+          userNim: data.user?.nim,
           roomName: data.room?.name,
           roomCapacity: data.room?.capacity,
           slots: data.bookingSlot.map((slot) => ({

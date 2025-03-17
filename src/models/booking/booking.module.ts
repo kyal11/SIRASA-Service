@@ -10,6 +10,7 @@ import { DashboardBookingService } from './dashboard-booking.service';
 import { BookingGateway } from './booking-gateway';
 import { RedisService } from 'src/config/redis/redis.service';
 import { JwtService } from '@nestjs/jwt';
+import { BookingExportsService } from 'src/features/exports/booking-exports.service';
 
 @Module({
   imports: [NotificationsModule],
@@ -23,6 +24,7 @@ import { JwtService } from '@nestjs/jwt';
     BookingGateway,
     RedisService,
     JwtService,
+    BookingExportsService,
   ],
   controllers: [BookingController],
 })

@@ -16,24 +16,38 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CreateUserDto } from './validation/create-user.dto';
 import { UpdateUserDto } from './validation/update-user.dto';
-import { UsersService } from './users.service';
-import { Req, SetMetadata, UseGuards } from '@nestjs/common/decorators';
+import {
+  Header,
+  Req,
+  Res,
+  SetMetadata,
+  UseGuards,
+} from '@nestjs/common/decorators';
+import { Response } from 'express';
 import { UserEntity } from './serialization/user.entity';
 import { PaginatedOutputDto } from 'src/common/paginate/paginated-output.dto';
 import { RolesGuard } from 'src/common/roles/roles.guard';
 import { AuthGuard } from '@nestjs/passport';
 import { Roles } from 'src/common/roles/roles.decorator';
+import { UsersService } from './users.service';
+import { UsersExportsService } from 'src/features/exports/users-exports.service';
 
 @Controller({ path: 'users', version: '1' })
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly userExportService: UsersExportsService,
+  ) {}
 
   @Get()
   @SetMetadata('message', 'Users retrieved successfully')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('superadmin', 'admin')
-  async getAllUsers() {
-    return await this.usersService.getAllUsers();
+  async getAllUsers(
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    return await this.usersService.getAllUsers(startDate, endDate);
   }
 
   @Get('paginate')
@@ -62,7 +76,41 @@ export class UsersController {
     const userId = req.user.userId;
     return await this.usersService.getUsersById(userId);
   }
+  @Get('export/excel')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('superadmin', 'admin')
+  @Header(
+    'Content-Type',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  )
+  async exportUsersToExcel(
+    @Res() res: Response,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    const buffer = await this.userExportService.exportUsersToExcel(
+      startDate,
+      endDate,
+    );
+    res.setHeader('Content-Disposition', 'attachment; filename=users.xlsx');
+    res.send(buffer);
+  }
 
+  @Get('export/csv')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('superadmin', 'admin')
+  @Header('Content-Type', 'text/csv')
+  async exportUsersToCsv(
+    @Res() res: Response,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    const filePath = await this.userExportService.exportUsersToCsv(
+      startDate,
+      endDate,
+    );
+    res.download(filePath);
+  }
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @SetMetadata('message', 'User created successfully')

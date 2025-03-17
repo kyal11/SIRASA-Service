@@ -3,12 +3,14 @@ import {
   Controller,
   Delete,
   Get,
+  Header,
   Param,
   ParseUUIDPipe,
   Post,
   Put,
   Query,
   Req,
+  Res,
   SetMetadata,
   UseGuards,
 } from '@nestjs/common';
@@ -23,6 +25,8 @@ import { PaginatedOutputDto } from 'src/common/paginate/paginated-output.dto';
 import { RecommendationEntity } from 'src/features/recommendationRoom/serilization/recommendation.entity';
 import { ApiResponse } from '../../common/api-response.entity';
 import { DashboardBookingService } from './dashboard-booking.service';
+import { BookingExportsService } from '../../features/exports/booking-exports.service';
+import { Response } from 'express';
 
 @UseGuards(AuthGuard('jwt'))
 @Controller({ path: 'bookings', version: '1' })
@@ -30,11 +34,15 @@ export class BookingController {
   constructor(
     private readonly bookingService: BookingService,
     private readonly dashboardBookingService: DashboardBookingService,
+    private readonly bookingExportsService: BookingExportsService,
   ) {}
 
   @Get()
-  async getAllBooking(): Promise<BookingEntity[]> {
-    return this.bookingService.getAllBooking();
+  async getAllBooking(
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ): Promise<BookingEntity[]> {
+    return this.bookingService.getAllBooking(startDate, endDate);
   }
 
   @Get('paginate')
@@ -123,6 +131,43 @@ export class BookingController {
     const dayFilter = day ? parseInt(day, 10) : undefined;
     return this.dashboardBookingService.countBooking(dayFilter);
   }
+
+  @Get('export/excel')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('superadmin', 'admin')
+  @Header(
+    'Content-Type',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  )
+  async exportBookingsToExcel(
+    @Res() res: Response,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    const buffer = await this.bookingExportsService.exportBookingsToExcel(
+      startDate,
+      endDate,
+    );
+    res.setHeader('Content-Disposition', 'attachment; filename=bookings.xlsx');
+    res.send(buffer);
+  }
+
+  @Get('/export/csv')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('superadmin', 'admin')
+  @Header('Content-Type', 'text/csv')
+  async exportBookingsToCsv(
+    @Res() res: Response,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    const filePath = await this.bookingExportsService.exportBookingsToCsv(
+      startDate,
+      endDate,
+    );
+    res.download(filePath);
+  }
+
   @Get(':id')
   async getBookingWithId(
     @Param('id', ParseUUIDPipe) id: string,
@@ -138,6 +183,15 @@ export class BookingController {
   ): Promise<ApiResponse<BookingEntity | RecommendationEntity[]>> {
     const userId = req.user.userId;
     return this.bookingService.createBooking(userId, data);
+  }
+
+  @Post(':id')
+  @SetMetadata('message', 'Booking success crated!')
+  async createBookingbyId(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() data: CreateBookingDto,
+  ): Promise<ApiResponse<BookingEntity | RecommendationEntity[]>> {
+    return this.bookingService.createBooking(id, data);
   }
 
   @Put(':id')
