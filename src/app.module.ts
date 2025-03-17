@@ -28,6 +28,8 @@ import { DashboardBookingService } from './models/booking/dashboard-booking.serv
 import { BookingGateway } from './models/booking/booking-gateway';
 import { BaseWebSocketGateway } from './base.gateaway';
 import { CrmModule } from './features/crm/crm.module';
+import { BookingExportsService } from './features/exports/booking-exports.service';
+import { UsersExportsService } from './features/exports/users-exports.service';
 
 @Module({
   imports: [
@@ -76,6 +78,8 @@ import { CrmModule } from './features/crm/crm.module';
     GreedyRecommendation,
     BookingGateway,
     BaseWebSocketGateway,
+    UsersExportsService,
+    BookingExportsService,
   ],
 })
 export class AppModule {}

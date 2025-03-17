@@ -1,0 +1,6 @@
+ID,Name,Email,Role,Verified,Phone Number,Image URL
+315b2361-c7f7-405a-8547-1d19c4159293,Admin User,superadmin@example.com,superadmin,Yes,Unknown,-
+2be4eb34-ac45-48d7-ab7d-c45ceee280a4,Regular User,user@example.com,user,Yes,Unknown,-
+ce7c5e08-997c-4348-8734-525c89aba5b4,Rizky Al Arief,2110511069@mahasiswa.upnvj.ac.id,user,No,Unknown,-
+7c1f6357-e402-4178-aaac-a5b9dc125f31,Rizky Al Arief,rizkyalarief111@gmail.com,user,Yes,083812721450,-
+7e562d7f-28db-44be-b4ca-c4f243c77f17,Admin User,admin@example.com,admin,No,Unknown,-

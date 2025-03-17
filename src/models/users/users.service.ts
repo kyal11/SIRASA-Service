@@ -15,11 +15,42 @@ export class UsersService {
     private readonly fileService: FileService,
   ) {}
 
-  async getAllUsers(): Promise<UserEntity[]> {
+  async getAllUsers(
+    startDate?: string,
+    endDate?: string,
+  ): Promise<UserEntity[]> {
+    const whereCondition: any = {};
+
+    if (startDate || endDate) {
+      const start = startDate ? new Date(startDate) : null;
+      const end = endDate ? new Date(endDate) : null;
+
+      if (start && isNaN(start.getTime())) {
+        throw new Error('Invalid startDate format. Use YYYY-MM-DD');
+      }
+      if (end && isNaN(end.getTime())) {
+        throw new Error('Invalid endDate format. Use YYYY-MM-DD');
+      }
+
+      if (start && end && start.toDateString() === end.toDateString()) {
+        start.setHours(0, 0, 0, 0);
+        end.setHours(23, 59, 59, 999);
+      } else {
+        if (start) start.setHours(0, 0, 0, 0);
+        if (end) end.setHours(23, 59, 59, 999);
+      }
+
+      whereCondition.createdAt = {};
+      if (start) whereCondition.createdAt.gte = start;
+      if (end) whereCondition.createdAt.lte = end;
+    }
+
     const users = await this.prisma.users.findMany({
+      where: whereCondition,
       include: {
         deviceTokens: true,
       },
+      orderBy: { createdAt: 'desc' },
     });
 
     return users.map((user) => plainToClass(UserEntity, user));

@@ -15,6 +15,9 @@ export class BookingEntity {
   userName: string;
 
   @Expose()
+  userNim: string;
+
+  @Expose()
   phoneNumber: string;
 
   // @Expose()
@@ -33,6 +36,9 @@ export class BookingEntity {
 
   @Expose()
   roomCapacity: number;
+
+  @Expose()
+  roomFloor: number;
 
   @Expose()
   participant: number;
