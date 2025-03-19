@@ -46,6 +46,7 @@ export class RoomService {
     }
 
     const roomData = await this.prisma.rooms.findMany({
+      orderBy: [{ floor: 'asc' }, { capacity: 'asc' }],
       include: {
         slots: {
           orderBy: [{ date: 'asc' }, { startTime: 'asc' }],
@@ -205,7 +206,7 @@ export class RoomService {
       throw new HttpException('Room not found', HttpStatus.NOT_FOUND);
     }
 
-    // Step 2: Update room-nya (data utama)
+    // Step 2: Update room (data utama)
     const updatedRoom = await this.prisma.rooms.update({
       where: { id },
       data: {
@@ -217,34 +218,38 @@ export class RoomService {
       },
     });
 
-    // Step 3: Hitung jam baru untuk slot (startTime dan endTime)
+    // Step 3: Hitung jam baru untuk slot
     const startHour = parseInt(updatedRoom.startTime.split(':')[0], 10);
     const endHour = parseInt(updatedRoom.endTime.split(':')[0], 10);
 
     // Step 4: Tentukan hari mana yang mau diupdate
     const today = new Date();
 
-    // Kalau user nggak kirim "updateDays", default ke semua hari [1, 2, 3]
-    const updateDays = roomData.updateDays ?? [1, 2, 3];
-
-    // Buat array tanggal berdasarkan updateDays
-    const datesToUpdate = updateDays.map((day) => {
+    const updateDays = roomData.updateDays ?? [1, 2, 3]; // Default update 3 hari
+    const datesToUpdate = updateDays.map((dayOffset) => {
       const date = new Date(today);
-      date.setDate(today.getDate() + (day - 1));
-      return date.toISOString().split('T')[0]; // format: YYYY-MM-DD
+      date.setDate(today.getDate() + (dayOffset - 1));
+      return date.toISOString().split('T')[0]; // 'YYYY-MM-DD'
     });
 
-    // Step 5: Loop tiap tanggal dan perbarui slots
+    // Step 5: Loop tiap tanggal yang mau diupdate
     for (const date of datesToUpdate) {
-      // Ambil slot yang sudah ada di tanggal tersebut
+      // Optional filter createdAt di rentang 00:00 - 23:59
+      const startOfDay = new Date(`${date}T00:00:00Z`);
+      const endOfDay = new Date(`${date}T23:59:59Z`);
+
+      // Ambil semua slot untuk room + tanggal tersebut (by 'date')
       const existingSlots = await this.prisma.slots.findMany({
         where: {
           roomId: id,
-          date: new Date(`${date}T00:00:00Z`).toISOString(),
+          createdAt: {
+            gte: startOfDay,
+            lte: endOfDay,
+          },
         },
       });
 
-      // Generate slot times yang baru dari startHour - endHour
+      // Step 6: Buat slot time baru berdasarkan startHour-endHour
       const newSlotTimes = [];
       for (let hour = startHour; hour < endHour; hour++) {
         const slotStartTime = `${hour.toString().padStart(2, '0')}:00`;
@@ -252,19 +257,20 @@ export class RoomService {
         newSlotTimes.push({ startTime: slotStartTime, endTime: slotEndTime });
       }
 
-      // Step 6: Tambahkan slot yang belum ada (create)
+      // Step 7: Tambah slot yang belum ada
       for (const newSlot of newSlotTimes) {
         const alreadyExists = existingSlots.find(
           (slot) =>
             slot.startTime === newSlot.startTime &&
             slot.endTime === newSlot.endTime,
         );
+
         if (!alreadyExists) {
           await this.prisma.slots.create({
             data: {
               id: crypto.randomUUID(),
               roomId: id,
-              date: new Date(`${date}T00:00:00Z`).toISOString(),
+              date: startOfDay.toISOString(), // Gunakan startOfDay
               startTime: newSlot.startTime,
               endTime: newSlot.endTime,
               isBooked: false,
@@ -276,20 +282,20 @@ export class RoomService {
         }
       }
 
-      // Step 7: Hapus slot yang tidak termasuk di range baru (delete)
+      // Step 8: Hapus slot yang nggak termasuk di newSlotTimes
       for (const slot of existingSlots) {
-        const stillInNewSlots = newSlotTimes.find(
+        const stillExists = newSlotTimes.find(
           (s) => s.startTime === slot.startTime && s.endTime === slot.endTime,
         );
-        if (!stillInNewSlots) {
-          // Cek apakah slot sudah dibooking sebelum hapus
+
+        if (!stillExists) {
           if (!slot.isBooked) {
             await this.prisma.slots.delete({
               where: { id: slot.id },
             });
           } else {
             console.warn(
-              `Slot ${slot.id} tidak dihapus karena sudah dibooking`,
+              `Slot ${slot.id} di tanggal ${date} tidak dihapus karena sudah dibooking`,
             );
           }
         }

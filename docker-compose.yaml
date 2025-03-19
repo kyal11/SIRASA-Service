@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   app:
     build:
@@ -37,7 +35,7 @@ services:
       - /etc/timezone:/etc/timezone:ro
       - redis-data:/data
     ports:
-      - "6379:6379"
+      - "6379"
 
 networks:
   sirasa-network:
@@ -45,3 +43,5 @@ networks:
 
 volumes:
   redis-data:
+  uploads-data:
+  logs-data:

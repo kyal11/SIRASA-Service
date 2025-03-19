@@ -15,7 +15,6 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
@@ -27,23 +26,27 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            echo "Cek & buat Docker network jika belum ada..."
+            echo "Checking & Creating Network..."
             docker network inspect sirasa-network >/dev/null 2>&1 || docker network create sirasa-network
-
-            echo "Ambil update terbaru dari repository..."
+            
+            echo "Pulling Latest Changes..."
             cd /root/app/SIRASA-Service && git pull origin main
-
-            echo "Buat folder public/uploads/logs jika belum ada..."
+            
+            echo "Creating public folder if it doesn't exist..."
             mkdir -p /root/app/SIRASA-Service/public
+            sudo chown -R 1000:1000 /root/app/SIRASA-Service/public
+            
+            echo "Creating host directories for uploads and logs if they don't exist..."
             mkdir -p /root/app/SIRASA-Service/uploads
             mkdir -p /root/app/SIRASA-Service/logs
-
-            echo "Pastikan permission folder benar..."
-            sudo chown -R 1000:1000 /root/app/SIRASA-Service/public
             sudo chown -R 1000:1000 /root/app/SIRASA-Service/uploads
             sudo chown -R 1000:1000 /root/app/SIRASA-Service/logs
-
-            echo "Build dan deploy service tanpa ganggu redis..."
-            docker compose -f /root/app/SIRASA-Service/docker-compose.yml up -d --no-deps --build app
-
-            echo "Selesai deploy!"
+            
+            echo "Ensuring volumes exist..."
+            docker volume inspect uploads-data >/dev/null 2>&1 || docker volume create uploads-data
+            docker volume inspect logs-data >/dev/null 2>&1 || docker volume create logs-data
+            
+            echo "Rebuilding and starting services..."
+            docker compose up -d --build
+            
+            echo "Deployment complete!"
