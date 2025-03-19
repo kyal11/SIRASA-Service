@@ -1,3 +1,5 @@
+version: "3.9"
+
 services:
   app:
     build:
@@ -17,8 +19,8 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
       - /root/app/SIRASA-Service/public:/app/public
-      - uploads-data:/app/uploads
-      - logs-data:/app/logs
+      - /root/app/SIRASA-Service/uploads:/app/uploads
+      - /root/app/SIRASA-Service/logs:/app/logs
     env_file:
       - .env
 
@@ -35,7 +37,7 @@ services:
       - /etc/timezone:/etc/timezone:ro
       - redis-data:/data
     ports:
-      - "6379"
+      - "6379:6379"
 
 networks:
   sirasa-network:
@@ -43,5 +45,3 @@ networks:
 
 volumes:
   redis-data:
-  uploads-data:
-  logs-data:

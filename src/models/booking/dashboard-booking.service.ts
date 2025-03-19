@@ -38,7 +38,7 @@ export class DashboardBookingService {
       }
 
       dateFilter = {
-        date: {
+        createdAt: {
           gte: startDate.toISOString(),
           lte: endDate.toISOString(),
         },
@@ -57,12 +57,13 @@ export class DashboardBookingService {
         bookingSlot: {
           some: {
             slot: {
-              ...dateFilter,
+              ...dateFilter, // Menggunakan createdAt dari slot
             },
           },
         },
       },
     });
+
     const totalBookings = bookings.length;
     const canceledBookings = bookings.filter(
       (b) => b.status === 'cancel',

@@ -11,10 +11,12 @@ export class BookingExportsService {
   private formatBookingData(bookings: BookingEntity[]) {
     return bookings.map((booking) => {
       const sortedSlots = booking.slots
-        .filter((slot) => slot.startTime && slot.endTime) // ✅ Hindari undefined error
+        .filter((slot) => slot.startTime && slot.endTime)
         .sort((a, b) => a.startTime.localeCompare(b.startTime));
 
-      const firstSlot = sortedSlots[0]; // Slot pertama untuk tanggal peminjaman
+      const firstSlot = sortedSlots[0];
+      console.log(firstSlot);
+      console.log(firstSlot.createdAt);
       const timeRange = sortedSlots
         .map((slot) => `${slot.startTime} - ${slot.endTime}`)
         .join(', ');
@@ -25,10 +27,14 @@ export class BookingExportsService {
         phoneNumber: booking.phoneNumber || '-',
         roomName: booking.roomName || '-',
         participant: booking.participant || 0,
-        borrowDate: firstSlot ? firstSlot.createdAt : '-',
+        borrowDate: firstSlot?.createdAt
+          ? new Date(firstSlot.createdAt).toLocaleDateString('id-ID')
+          : '-',
         borrowTime: timeRange || '-',
         status: booking.status || '-',
-        createdAt: booking.createdAt || '-',
+        createdAt: booking.createdAt
+          ? new Date(booking.createdAt).toLocaleDateString('id-ID')
+          : '-',
       };
     });
   }

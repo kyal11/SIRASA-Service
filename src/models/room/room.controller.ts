@@ -60,7 +60,7 @@ export class RoomController {
   @Put(':id')
   async updateRoom(
     @Param('id') id: string,
-    @Body() roomData: UpdateRoomDto,
+    @Body() roomData: UpdateRoomDto & { updateDays?: number[] },
   ): Promise<RoomEntity> {
     return this.roomService.updateRoom(id, roomData);
   }

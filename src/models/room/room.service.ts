@@ -195,12 +195,17 @@ export class RoomService {
     return plainToClass(RoomEntity, createdRoom);
   }
 
-  async updateRoom(id: string, roomData: UpdateRoomDto): Promise<RoomEntity> {
+  async updateRoom(
+    id: string,
+    roomData: UpdateRoomDto & { updateDays?: number[] },
+  ): Promise<RoomEntity> {
+    // Step 1: Cek apakah room-nya ada
     const existingRoom = await this.prisma.rooms.findUnique({ where: { id } });
     if (!existingRoom) {
       throw new HttpException('Room not found', HttpStatus.NOT_FOUND);
     }
 
+    // Step 2: Update room-nya (data utama)
     const updatedRoom = await this.prisma.rooms.update({
       where: { id },
       data: {
@@ -211,6 +216,86 @@ export class RoomService {
         endTime: roomData.endTime,
       },
     });
+
+    // Step 3: Hitung jam baru untuk slot (startTime dan endTime)
+    const startHour = parseInt(updatedRoom.startTime.split(':')[0], 10);
+    const endHour = parseInt(updatedRoom.endTime.split(':')[0], 10);
+
+    // Step 4: Tentukan hari mana yang mau diupdate
+    const today = new Date();
+
+    // Kalau user nggak kirim "updateDays", default ke semua hari [1, 2, 3]
+    const updateDays = roomData.updateDays ?? [1, 2, 3];
+
+    // Buat array tanggal berdasarkan updateDays
+    const datesToUpdate = updateDays.map((day) => {
+      const date = new Date(today);
+      date.setDate(today.getDate() + (day - 1));
+      return date.toISOString().split('T')[0]; // format: YYYY-MM-DD
+    });
+
+    // Step 5: Loop tiap tanggal dan perbarui slots
+    for (const date of datesToUpdate) {
+      // Ambil slot yang sudah ada di tanggal tersebut
+      const existingSlots = await this.prisma.slots.findMany({
+        where: {
+          roomId: id,
+          date: new Date(`${date}T00:00:00Z`).toISOString(),
+        },
+      });
+
+      // Generate slot times yang baru dari startHour - endHour
+      const newSlotTimes = [];
+      for (let hour = startHour; hour < endHour; hour++) {
+        const slotStartTime = `${hour.toString().padStart(2, '0')}:00`;
+        const slotEndTime = `${(hour + 1).toString().padStart(2, '0')}:00`;
+        newSlotTimes.push({ startTime: slotStartTime, endTime: slotEndTime });
+      }
+
+      // Step 6: Tambahkan slot yang belum ada (create)
+      for (const newSlot of newSlotTimes) {
+        const alreadyExists = existingSlots.find(
+          (slot) =>
+            slot.startTime === newSlot.startTime &&
+            slot.endTime === newSlot.endTime,
+        );
+        if (!alreadyExists) {
+          await this.prisma.slots.create({
+            data: {
+              id: crypto.randomUUID(),
+              roomId: id,
+              date: new Date(`${date}T00:00:00Z`).toISOString(),
+              startTime: newSlot.startTime,
+              endTime: newSlot.endTime,
+              isBooked: false,
+              isExpired: false,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            },
+          });
+        }
+      }
+
+      // Step 7: Hapus slot yang tidak termasuk di range baru (delete)
+      for (const slot of existingSlots) {
+        const stillInNewSlots = newSlotTimes.find(
+          (s) => s.startTime === slot.startTime && s.endTime === slot.endTime,
+        );
+        if (!stillInNewSlots) {
+          // Cek apakah slot sudah dibooking sebelum hapus
+          if (!slot.isBooked) {
+            await this.prisma.slots.delete({
+              where: { id: slot.id },
+            });
+          } else {
+            console.warn(
+              `Slot ${slot.id} tidak dihapus karena sudah dibooking`,
+            );
+          }
+        }
+      }
+    }
+
     return plainToClass(RoomEntity, updatedRoom);
   }
 

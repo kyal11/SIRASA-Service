@@ -208,6 +208,7 @@ export class BookingService {
           userNim: data.user?.nim,
           roomName: data.room?.name,
           roomCapacity: data.room?.capacity,
+          roomFloor: data.room?.floor,
           slots: data.bookingSlot.map((slot) => ({
             id: slot.slot.id,
             slotId: slot.slot.id,
