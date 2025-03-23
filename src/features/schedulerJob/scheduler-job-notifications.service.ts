@@ -96,31 +96,39 @@ export class SchedulerJobNotificationService {
     const nowDate = new Date();
     const timeDeadline = new Date(nowDate.getTime());
     const formattedTime = this.formatTime(timeDeadline);
-    const startOfDay = new Date(
+    const jakartaOffsetMinutes = 7 * 60; // UTC+7
+    const jakartaNow = new Date(
+      nowDate.getTime() + jakartaOffsetMinutes * 60 * 1000,
+    );
+
+    const jakartaYear = jakartaNow.getUTCFullYear();
+    const jakartaMonth = jakartaNow.getUTCMonth();
+    const jakartaDate = jakartaNow.getUTCDate();
+
+    console.log(
+      `Sekarang Jakarta: ${jakartaNow.toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}`,
+    );
+
+    const startOfDayJakarta = new Date(
       Date.UTC(
-        nowDate.getUTCFullYear(),
-        nowDate.getUTCMonth(),
-        nowDate.getUTCDate(),
-        0,
-        0,
+        jakartaYear,
+        jakartaMonth,
+        jakartaDate,
+        -jakartaOffsetMinutes / 60,
         0,
         0,
       ),
-    ).toISOString();
-
-    const endOfDay = new Date(
+    );
+    const endOfDayJakarta = new Date(
       Date.UTC(
-        nowDate.getUTCFullYear(),
-        nowDate.getUTCMonth(),
-        nowDate.getUTCDate(),
-        23,
+        jakartaYear,
+        jakartaMonth,
+        jakartaDate,
+        23 - jakartaOffsetMinutes / 60,
         59,
         59,
         999,
       ),
-    ).toISOString();
-    console.log(
-      `Checking bookings for deadline at ${startOfDay}- ${endOfDay} in ${formattedTime}...`,
     );
 
     const bookings = await this.prisma.bookings.findMany({
@@ -130,8 +138,8 @@ export class SchedulerJobNotificationService {
           some: {
             slot: {
               date: {
-                gte: startOfDay,
-                lt: endOfDay,
+                gte: startOfDayJakarta.toISOString(),
+                lt: endOfDayJakarta.toISOString(),
               },
               startTime: formattedTime,
             },
@@ -173,39 +181,49 @@ export class SchedulerJobNotificationService {
     console.log('Cron job for booking reminder executed.');
   }
 
-  @Cron('*/10 * * * *')
+  @Cron('* * * * *')
   async handleAutoCancel(): Promise<void> {
     const nowDate = new Date();
-    const tenMinutesAgo = new Date(nowDate.getTime() - 10 * 60 * 1000);
-    const formattedTime = this.formatTime(tenMinutesAgo);
-    const startOfDay = new Date(
+
+    console.log(
+      `Checking for auto-cancel at ${nowDate.toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}...`,
+    );
+    const jakartaOffsetMinutes = 7 * 60; // UTC+7
+    const jakartaNow = new Date(
+      nowDate.getTime() + jakartaOffsetMinutes * 60 * 1000,
+    );
+
+    const jakartaYear = jakartaNow.getUTCFullYear();
+    const jakartaMonth = jakartaNow.getUTCMonth();
+    const jakartaDate = jakartaNow.getUTCDate();
+
+    console.log(
+      `Sekarang Jakarta: ${jakartaNow.toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}`,
+    );
+
+    const startOfDayJakarta = new Date(
       Date.UTC(
-        nowDate.getUTCFullYear(),
-        nowDate.getUTCMonth(),
-        nowDate.getUTCDate(),
-        0,
-        0,
+        jakartaYear,
+        jakartaMonth,
+        jakartaDate,
+        -jakartaOffsetMinutes / 60,
         0,
         0,
       ),
-    ).toISOString();
-
-    const endOfDay = new Date(
+    );
+    const endOfDayJakarta = new Date(
       Date.UTC(
-        nowDate.getUTCFullYear(),
-        nowDate.getUTCMonth(),
-        nowDate.getUTCDate(),
-        23,
+        jakartaYear,
+        jakartaMonth,
+        jakartaDate,
+        23 - jakartaOffsetMinutes / 60,
         59,
         59,
         999,
       ),
-    ).toISOString();
-
-    console.log(
-      `Checking for auto-cancel at ${startOfDay} - ${endOfDay} for bookings before ${formattedTime}...`,
     );
 
+    // Ambil semua booking yang masih "booked" hari ini
     const bookings = await this.prisma.bookings.findMany({
       where: {
         status: 'booked',
@@ -213,16 +231,16 @@ export class SchedulerJobNotificationService {
           some: {
             slot: {
               date: {
-                gte: startOfDay,
-                lt: endOfDay,
+                gte: startOfDayJakarta.toISOString(),
+                lt: endOfDayJakarta.toISOString(),
               },
-              startTime: formattedTime,
             },
           },
         },
       },
       select: {
         id: true,
+        createdAt: true,
         user: {
           select: {
             deviceTokens: { select: { token: true } },
@@ -232,69 +250,358 @@ export class SchedulerJobNotificationService {
         bookingSlot: {
           select: {
             slotId: true,
+            slot: {
+              select: { date: true, startTime: true },
+            },
+          },
+          orderBy: {
+            slot: {
+              startTime: 'asc',
+            },
           },
         },
       },
     });
 
-    console.log(
-      `Bookings to be canceled:\n${JSON.stringify(bookings, null, 2)}`,
-    );
+    console.log(bookings);
     if (bookings.length === 0) {
-      console.log('No bookings to cancel.');
+      console.log('No active bookings found.');
       return;
     }
 
+    const bookingsToCancel = [];
+
     for (const booking of bookings) {
-      await this.prisma.bookings.update({
-        where: { id: booking.id },
-        data: { status: 'cancel' },
+      const sortedSlots = booking.bookingSlot.sort((a, b) => {
+        const [aHours, aMinutes] = a.slot.startTime.split(':').map(Number);
+        const [bHours, bMinutes] = b.slot.startTime.split(':').map(Number);
+        return aHours !== bHours ? aHours - bHours : aMinutes - bMinutes;
       });
-      await this.prisma.slots.updateMany({
-        where: {
-          id: { in: booking.bookingSlot.map((slot) => slot.slotId) },
-        },
-        data: { isBooked: false },
+
+      const firstSlot = sortedSlots[0].slot;
+
+      // Convert first slot startTime ke Date
+      const [startHour, startMinute] = firstSlot.startTime
+        .split(':')
+        .map(Number);
+      const slotStartDate = new Date(firstSlot.date);
+      slotStartDate.setUTCHours(startHour);
+      slotStartDate.setUTCMinutes(startMinute);
+      slotStartDate.setUTCSeconds(0);
+      slotStartDate.setUTCMilliseconds(0);
+
+      let cancelDeadline: Date;
+      const bookingCreatedAtUTC = new Date(booking.createdAt);
+      const bookingTime = bookingCreatedAtUTC.toLocaleTimeString('id-ID', {
+        timeZone: 'Asia/Jakarta',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
       });
-      await this.notification.notifyAutomaticCancellation(
-        booking.user.deviceTokens.map((device) => device.token),
-        booking.room.name,
-        formattedTime,
+
+      const [bookingHour, bookingMinute] = bookingTime.split('.').map(Number);
+      const bookingTotalMinutes = bookingHour * 60 + bookingMinute;
+      const slotStartTotalMinutes = startHour * 60 + startMinute;
+
+      console.log('=============================');
+      console.log(`Booking ID       ➔ ${booking.id}`);
+      console.log(
+        `Booking time     ➔ ${bookingTime} ➔ ${bookingHour} jam ${bookingMinute} menit`,
       );
+      console.log(`Slot start time  ➔ ${startHour}:${startMinute}`);
+      console.log(`Booking Total Minutes ➔ ${bookingTotalMinutes}`);
+      console.log(`Slot Start Total Minutes ➔ ${slotStartTotalMinutes}`);
+
+      const isAfterSlotStart = bookingTotalMinutes > slotStartTotalMinutes;
+      console.log(
+        `Apakah booking dibuat setelah slot start? ➔ ${isAfterSlotStart}`,
+      );
+      console.log('=============================');
+
+      if (isAfterSlotStart) {
+        // Kalau booking dibuat setelah waktu start slot ➔ cancelDeadline = createdAt + 10 menit
+        const adjustedBookingStart = new Date(
+          booking.createdAt.getTime() - 7 * 60 * 60 * 1000,
+        );
+
+        console.log(
+          `[AFTER SLOT START] Booking Created At (Raw) ➔ ${booking.createdAt.toISOString()}`,
+        );
+        console.log(
+          `[AFTER SLOT START] Booking Created At (Adjusted -7 jam) ➔ ${adjustedBookingStart.toISOString()}`,
+        );
+
+        cancelDeadline = new Date(
+          adjustedBookingStart.getTime() + 10 * 60 * 1000,
+        );
+
+        console.log(
+          `[AFTER SLOT START] Cancel Deadline ➔ ${cancelDeadline.toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}`,
+        );
+      } else {
+        // Kalau booking dibuat sebelum slot start ➔ cancelDeadline = slot start + 10 menit
+        const adjustedSlotStart = new Date(
+          slotStartDate.getTime() - 7 * 60 * 60 * 1000,
+        );
+
+        console.log(
+          `[BEFORE SLOT START] Slot Start Date (Raw) ➔ ${slotStartDate.toISOString()}`,
+        );
+        console.log(
+          `[BEFORE SLOT START] Slot Start Date (Adjusted -7 jam) ➔ ${adjustedSlotStart.toISOString()}`,
+        );
+
+        cancelDeadline = new Date(adjustedSlotStart.getTime() + 10 * 60 * 1000);
+
+        console.log(
+          `[BEFORE SLOT START] Cancel Deadline ➔ ${cancelDeadline.toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}`,
+        );
+      }
+
+      console.log('=============================');
+      console.log(
+        `[NOW] Sekarang: ${nowDate.toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}`,
+      );
+      console.log(`[NOW] Sekarang (ISO): ${nowDate.toISOString()}`);
+      console.log(
+        `[DEADLINE] Cancel Deadline: ${cancelDeadline.toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}`,
+      );
+      console.log(
+        `[DEADLINE] Cancel Deadline (ISO): ${cancelDeadline.toISOString()}`,
+      );
+
+      if (nowDate > cancelDeadline) {
+        console.log(
+          '❌❌ Booking Melewati Batas Cancel, Akan Dimasukkan ke bookingsToCancel ❌❌',
+        );
+
+        bookingsToCancel.push({
+          bookingId: booking.id,
+          slotIds: booking.bookingSlot.map((s) => s.slotId),
+          userTokens: booking.user.deviceTokens.map((device) => device.token),
+          roomName: booking.room.name,
+          deadline: cancelDeadline.toISOString(),
+        });
+      } else {
+        console.log('✅ Booking Masih Aktif, Tidak Dibatalkan ✅');
+      }
+
+      console.log('=============================');
     }
-    console.log('Auto-cancel process completed.');
+    if (bookingsToCancel.length === 0) {
+      console.log('No bookings to auto-cancel at this time.');
+      return;
+    }
+
+    // Eksekusi pembatalan
+    for (const cancelInfo of bookingsToCancel) {
+      const booking = await this.prisma.bookings.update({
+        where: { id: cancelInfo.bookingId },
+        data: { status: 'cancel' },
+        include: {
+          bookingSlot: {
+            select: {
+              slot: {
+                select: {
+                  startTime: true,
+                  date: true,
+                },
+              },
+            },
+          },
+        },
+      });
+      const sortedSlots = booking.bookingSlot.sort((a, b) => {
+        const [aHours, aMinutes] = a.slot.startTime.split(':').map(Number);
+        const [bHours, bMinutes] = b.slot.startTime.split(':').map(Number);
+        return aHours !== bHours ? aHours - bHours : aMinutes - bMinutes;
+      });
+
+      const firstSlot = sortedSlots[0].slot;
+
+      // Convert first slot startTime ke Date
+      const [startHour, startMinute] = firstSlot.startTime
+        .split(':')
+        .map(Number);
+      const slotStartDate = new Date(firstSlot.date);
+      slotStartDate.setUTCHours(startHour);
+      slotStartDate.setUTCMinutes(startMinute);
+      slotStartDate.setUTCSeconds(0);
+      slotStartDate.setUTCMilliseconds(0);
+
+      // Misalkan slotStartDate itu UTC
+      const adjustedSlotStart = new Date(
+        slotStartDate.getTime() - 7 * 60 * 60 * 1000,
+      );
+
+      // Setelah dikurangi 7 jam, tambahkan 30 menit
+      const freeSlotDeadline = new Date(
+        adjustedSlotStart.getTime() + 5 * 60 * 1000,
+      );
+
+      console.log('-----------------------------');
+      console.log(`Booking ID ➔ ${cancelInfo.bookingId}`);
+      console.log(`Slot Start ➔ ${slotStartDate.toISOString()}`);
+      console.log(
+        `Free Slot Deadline (Start +40m) ➔ ${freeSlotDeadline.toISOString()}`,
+      );
+      console.log(`Now ➔ ${new Date().toISOString()}`);
+
+      if (new Date() <= freeSlotDeadline) {
+        // Masih dalam 40 menit ➔ update isBooked = false
+        await this.prisma.slots.updateMany({
+          where: { id: { in: cancelInfo.slotIds } },
+          data: { isBooked: false },
+        });
+        console.log(`✅ Slot berhasil di-free-kan!`);
+      } else {
+        console.log(`⛔ Melewati batas 40 menit, slot tidak di-free-kan.`);
+      }
+
+      await this.notification.notifyAutomaticCancellation(
+        cancelInfo.userTokens,
+        cancelInfo.roomName,
+        `${booking.bookingSlot[0].slot.startTime} - booking.bookingSlot[1].slot.endTime}`,
+      );
+
+      console.log(`Auto-canceled booking ID ${cancelInfo.bookingId}`);
+    }
+
+    console.log(
+      `Auto-cancel process completed for ${bookingsToCancel.length} bookings.`,
+    );
   }
+
+  // @Cron('*/10 * * * *')
+  // async handleAutoCancel(): Promise<void> {
+  //   const nowDate = new Date();
+  //   const tenMinutesAgo = new Date(nowDate.getTime() - 10 * 60 * 1000);
+  //   const formattedTime = this.formatTime(tenMinutesAgo);
+  //   const startOfDay = new Date(
+  //     Date.UTC(
+  //       nowDate.getUTCFullYear(),
+  //       nowDate.getUTCMonth(),
+  //       nowDate.getUTCDate(),
+  //       0,
+  //       0,
+  //       0,
+  //       0,
+  //     ),
+  //   ).toISOString();
+
+  //   const endOfDay = new Date(
+  //     Date.UTC(
+  //       nowDate.getUTCFullYear(),
+  //       nowDate.getUTCMonth(),
+  //       nowDate.getUTCDate(),
+  //       23,
+  //       59,
+  //       59,
+  //       999,
+  //     ),
+  //   ).toISOString();
+
+  //   console.log(
+  //     `Checking for auto-cancel at ${startOfDay} - ${endOfDay} for bookings before ${formattedTime}...`,
+  //   );
+
+  //   const bookings = await this.prisma.bookings.findMany({
+  //     where: {
+  //       status: 'booked',
+  //       bookingSlot: {
+  //         some: {
+  //           slot: {
+  //             date: {
+  //               gte: startOfDay,
+  //               lt: endOfDay,
+  //             },
+  //             startTime: formattedTime,
+  //           },
+  //         },
+  //       },
+  //     },
+  //     select: {
+  //       id: true,
+  //       user: {
+  //         select: {
+  //           deviceTokens: { select: { token: true } },
+  //         },
+  //       },
+  //       room: { select: { name: true } },
+  //       bookingSlot: {
+  //         select: {
+  //           slotId: true,
+  //         },
+  //       },
+  //     },
+  //   });
+
+  //   console.log(
+  //     `Bookings to be canceled:\n${JSON.stringify(bookings, null, 2)}`,
+  //   );
+  //   if (bookings.length === 0) {
+  //     console.log('No bookings to cancel.');
+  //     return;
+  //   }
+
+  //   for (const booking of bookings) {
+  //     await this.prisma.bookings.update({
+  //       where: { id: booking.id },
+  //       data: { status: 'cancel' },
+  //     });
+  //     await this.prisma.slots.updateMany({
+  //       where: {
+  //         id: { in: booking.bookingSlot.map((slot) => slot.slotId) },
+  //       },
+  //       data: { isBooked: false },
+  //     });
+  //     await this.notification.notifyAutomaticCancellation(
+  //       booking.user.deviceTokens.map((device) => device.token),
+  //       booking.room.name,
+  //       formattedTime,
+  //     );
+  //   }
+  //   console.log('Auto-cancel process completed.');
+  // }
 
   @Cron('*/10 * * * *')
   async handleBookingEndTimeReminder(): Promise<void> {
     const nowDate = new Date();
     const timeDeadline = new Date(nowDate.getTime() + 10 * 60 * 1000);
     const formattedTime = this.formatTime(timeDeadline);
-    const startOfDay = new Date(
+    const jakartaOffsetMinutes = 7 * 60; // UTC+7
+    const jakartaNow = new Date(
+      nowDate.getTime() + jakartaOffsetMinutes * 60 * 1000,
+    );
+
+    const jakartaYear = jakartaNow.getUTCFullYear();
+    const jakartaMonth = jakartaNow.getUTCMonth();
+    const jakartaDate = jakartaNow.getUTCDate();
+
+    console.log(
+      `Sekarang Jakarta: ${jakartaNow.toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}`,
+    );
+
+    const startOfDayJakarta = new Date(
       Date.UTC(
-        nowDate.getUTCFullYear(),
-        nowDate.getUTCMonth(),
-        nowDate.getUTCDate(),
-        0,
-        0,
+        jakartaYear,
+        jakartaMonth,
+        jakartaDate,
+        -jakartaOffsetMinutes / 60,
         0,
         0,
       ),
-    ).toISOString();
-
-    const endOfDay = new Date(
+    );
+    const endOfDayJakarta = new Date(
       Date.UTC(
-        nowDate.getUTCFullYear(),
-        nowDate.getUTCMonth(),
-        nowDate.getUTCDate(),
-        23,
+        jakartaYear,
+        jakartaMonth,
+        jakartaDate,
+        23 - jakartaOffsetMinutes / 60,
         59,
         59,
         999,
       ),
-    ).toISOString();
-    console.log(
-      `Checking bookings for endTime at ${startOfDay}- ${endOfDay} in ${formattedTime}...`,
     );
 
     const bookings = await this.prisma.bookings.findMany({
@@ -304,8 +611,8 @@ export class SchedulerJobNotificationService {
           some: {
             slot: {
               date: {
-                gte: startOfDay,
-                lt: endOfDay,
+                gte: startOfDayJakarta.toISOString(),
+                lt: endOfDayJakarta.toISOString(),
               },
               endTime: formattedTime,
             },
