@@ -18,6 +18,7 @@ services:
       - /etc/timezone:/etc/timezone:ro
       - /root/app/SIRASA-Service/public:/public
       - /root/app/SIRASA-Service/uploads:/uploads
+      - /root/app/SIRASA-Service/uploads/profiles:/uploads/profiles
       - /root/app/SIRASA-Service/logs:/logs
     env_file:
       - .env

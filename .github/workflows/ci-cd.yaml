@@ -38,8 +38,10 @@ jobs:
             
             echo "Creating host directories for uploads and logs if they don't exist..."
             mkdir -p /root/app/SIRASA-Service/uploads
+            mkdir -p /root/app/SIRASA-Service/uploads/profiles
             mkdir -p /root/app/SIRASA-Service/logs
             sudo chown -R 1000:1000 /root/app/SIRASA-Service/uploads
+            sudo chown -R 1000:1000 /root/app/SIRASA-Service/uploads/profiles
             sudo chown -R 1000:1000 /root/app/SIRASA-Service/logs
             
             echo "Ensuring volumes exist..."
