@@ -162,12 +162,11 @@ export class BookingService {
       parsedEndDate.setHours(23, 59, 59, 999);
     }
 
-    // 🔹 Filter berdasarkan tanggal bookingSlot.slot.createdAt
     if (parsedStartDate || parsedEndDate) {
       filters.bookingSlot = {
         some: {
           slot: {
-            createdAt: {
+            date: {
               ...(parsedStartDate ? { gte: parsedStartDate } : {}),
               ...(parsedEndDate ? { lte: parsedEndDate } : {}),
             },
@@ -513,10 +512,6 @@ export class BookingService {
       },
     });
     if (room.capacity < dataBooking.participant) {
-      // throw new HttpException(
-      //   'The room capacity is not enough!',
-      //   HttpStatus.NOT_FOUND,
-      // );
       const recommendations = this.recommendation.recommend(
         {
           roomId: dataBooking.roomId,
@@ -534,13 +529,6 @@ export class BookingService {
     }
     const bookedSlots = slots.filter((slot) => slot.isBooked);
     if (bookedSlots.length > 0) {
-      // const bookedSlotTimes = bookedSlots
-      //   .map((slot) => `(${slot.startTime} - ${slot.endTime})`)
-      //   .join(', ');
-      // throw new HttpException(
-      //   `One or more slots are already booked: ${bookedSlotTimes}.`,
-      //   HttpStatus.BAD_REQUEST,
-      // );
       const recommendations = this.recommendation.recommend(
         {
           roomId: dataBooking.roomId,
@@ -556,15 +544,6 @@ export class BookingService {
           'Selected slots are unavailable. Here are alternative options:',
         data: recommendations,
       });
-
-      // return this.recommendation.recommend(
-      //   {
-      //     roomId: dataBooking.roomId,
-      //     participant: dataBooking.participant,
-      //     slots: slots,
-      //   },
-      //   rooms,
-      // );
     }
 
     // Buat Booking
@@ -599,21 +578,82 @@ export class BookingService {
     });
     const recipientTokens =
       user?.deviceTokens.map((token) => token.token) || [];
-    const bookingDate = new Date().toLocaleDateString();
     const timeSlot = sortedSlots
       .map((slot) => `${slot.startTime} - ${slot.endTime}`)
       .join(', ');
 
-    await this.NotificationsService.notifyBookingConfirmation(
-      recipientTokens,
-      room.name,
-      bookingDate,
-      timeSlot,
-    );
+    // Ambil startTime dan tanggal slot pertama
+    const firstSlot = sortedSlots[0];
+    const firstSlotDate = firstSlot.date.toISOString().split('T')[0]; // yyyy-mm-dd
+    const firstSlotStartTime = firstSlot.startTime; // "HH:mm"
+
+    // Parse startTime jadi angka
+    const [startHour, startMinute] = firstSlotStartTime.split(':').map(Number);
+
+    // Buat slotStartDate UTC (tanpa offset dulu)
+    const slotStartDateUTC = new Date(firstSlotDate);
+    slotStartDateUTC.setUTCHours(startHour);
+    slotStartDateUTC.setUTCMinutes(startMinute);
+    slotStartDateUTC.setUTCSeconds(0);
+    slotStartDateUTC.setUTCMilliseconds(0);
+
+    // ❌ Jangan tambahkan offset manual!
+    // Gunakan `toLocaleString` atau `getUTCHours()` saja kalau butuh
+
+    // Waktu booking dibuat (UTC)
+    const bookingCreatedAtUTC = new Date(booking.createdAt);
+
+    // Cek tanggal dalam timezone Jakarta (pakai toLocaleString)
+    const bookingDateStr = bookingCreatedAtUTC.toLocaleDateString('id-ID', {
+      timeZone: 'Asia/Jakarta',
+    });
+    const slotDateStr = slotStartDateUTC.toLocaleDateString('id-ID', {
+      timeZone: 'Asia/Jakarta',
+    });
+    const isSameDate = bookingDateStr === slotDateStr;
+
+    // Ambil jam & menit Jakarta
+    const bookingTime = bookingCreatedAtUTC.toLocaleTimeString('id-ID', {
+      timeZone: 'Asia/Jakarta',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+
+    const [bookingHour, bookingMinute] = bookingTime.split('.').map(Number);
+    const bookingTotalMinutes = bookingHour * 60 + bookingMinute;
+    const slotStartTotalMinutes = startHour * 60 + startMinute;
+    const isAfterSlotStart = bookingTotalMinutes > slotStartTotalMinutes;
+
+    // Logic utama
+    if (isSameDate && isAfterSlotStart) {
+      console.log(
+        'Booking dibuat di hari yang sama DAN setelah startTime slot pertama (WIB)!',
+      );
+
+      await this.NotificationsService.notifyBookingConfirmation(
+        recipientTokens,
+        room.name,
+        bookingDateStr,
+        timeSlot,
+        bookingCreatedAtUTC.toISOString(), // overTime
+      );
+    } else {
+      console.log(
+        'Booking dibuat di hari berbeda ATAU sebelum/sama dengan startTime slot pertama (WIB)',
+      );
+
+      await this.NotificationsService.notifyBookingConfirmation(
+        recipientTokens,
+        room.name,
+        bookingDateStr,
+        timeSlot,
+      );
+    }
 
     return plainToInstance(ApiResponse, {
       status: 'success',
-      message: 'Booking succesfully created!',
+      message: 'Booking successfully created!',
       data: booking,
     });
   }

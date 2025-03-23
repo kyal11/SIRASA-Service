@@ -16,7 +16,7 @@ export class SchedulerJobSlotService {
         today.getUTCMonth(),
         today.getUTCDate() + 3,
         0,
-        2,
+        0,
         0,
         0,
       ),
@@ -67,38 +67,46 @@ export class SchedulerJobSlotService {
   async expiredSlots(): Promise<void> {
     const nowDate = new Date();
 
-    const startOfYesterdayUTC = new Date(
+    const jakartaOffsetMinutes = 7 * 60; // UTC+7
+    const jakartaNow = new Date(
+      nowDate.getTime() + jakartaOffsetMinutes * 60 * 1000,
+    );
+
+    const jakartaYear = jakartaNow.getUTCFullYear();
+    const jakartaMonth = jakartaNow.getUTCMonth();
+    const jakartaDate = jakartaNow.getUTCDate();
+
+    console.log(
+      `Sekarang Jakarta: ${jakartaNow.toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}`,
+    );
+
+    const startOfDayJakarta = new Date(
       Date.UTC(
-        nowDate.getUTCFullYear(),
-        nowDate.getUTCMonth(),
-        nowDate.getUTCDate() - 1,
-        0,
-        0,
+        jakartaYear,
+        jakartaMonth,
+        jakartaDate - 1,
+        -jakartaOffsetMinutes / 60,
         0,
         0,
       ),
     );
-
-    const endOfYesterdayUTC = new Date(
+    const endOfDayJakarta = new Date(
       Date.UTC(
-        nowDate.getUTCFullYear(),
-        nowDate.getUTCMonth(),
-        nowDate.getUTCDate() - 1,
-        23,
+        jakartaYear,
+        jakartaMonth,
+        jakartaDate - 1,
+        23 - jakartaOffsetMinutes / 60,
         59,
         59,
         999,
       ),
     );
 
-    console.log('Start of Yesterday (UTC):', startOfYesterdayUTC);
-    console.log('End of Yesterday (UTC):', endOfYesterdayUTC);
-
     const updatedSlots = await this.prisma.slots.updateMany({
       where: {
         date: {
-          gte: startOfYesterdayUTC,
-          lte: endOfYesterdayUTC,
+          gte: startOfDayJakarta.toISOString(),
+          lt: endOfDayJakarta.toISOString(),
         },
       },
       data: {
@@ -107,41 +115,131 @@ export class SchedulerJobSlotService {
     });
     console.log(`Expired slots updated: ${updatedSlots.count}`);
   }
+  @Cron('0 0 * * *')
+  async deleteUnusedYesterdaySlots(): Promise<void> {
+    try {
+      console.log('Starting to delete unused slots from yesterday...');
+
+      const nowDate = new Date();
+
+      const jakartaOffsetMinutes = 7 * 60; // UTC+7
+      const jakartaNow = new Date(
+        nowDate.getTime() + jakartaOffsetMinutes * 60 * 1000,
+      );
+
+      const jakartaYear = jakartaNow.getUTCFullYear();
+      const jakartaMonth = jakartaNow.getUTCMonth();
+      const jakartaDate = jakartaNow.getUTCDate();
+
+      console.log(
+        `Sekarang Jakarta: ${jakartaNow.toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}`,
+      );
+
+      const startOfDayJakarta = new Date(
+        Date.UTC(
+          jakartaYear,
+          jakartaMonth,
+          jakartaDate - 1,
+          -jakartaOffsetMinutes / 60,
+          0,
+          0,
+        ),
+      );
+      const endOfDayJakarta = new Date(
+        Date.UTC(
+          jakartaYear,
+          jakartaMonth,
+          jakartaDate - 1,
+          23 - jakartaOffsetMinutes / 60,
+          59,
+          59,
+          999,
+        ),
+      );
+
+      const unusedSlots = await this.prisma.slots.findMany({
+        where: {
+          date: {
+            gte: startOfDayJakarta.toISOString(),
+            lt: endOfDayJakarta.toISOString(),
+          },
+          isBooked: false,
+          bookingSlot: {
+            none: {},
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      console.log(
+        `Found ${unusedSlots.length} unused slots from yesterday to delete.`,
+      );
+
+      if (unusedSlots.length > 0) {
+        const slotIds = unusedSlots.map((slot) => slot.id);
+
+        const deleteResult = await this.prisma.slots.deleteMany({
+          where: {
+            id: { in: slotIds },
+          },
+        });
+
+        console.log(`Deleted ${deleteResult.count} slots from yesterday.`);
+      } else {
+        console.log('No unused slots found for yesterday.');
+      }
+    } catch (error) {
+      console.error('Error deleting unused slots from yesterday:', error);
+    }
+  }
 
   @Cron('*/10 * * * *')
   async closeTimeSlotBooking(): Promise<void> {
     const nowDate = new Date();
     const closeTime = new Date(nowDate.getTime() + 20 * 60 * 1000);
     const formattedTime = this.formatTime(closeTime);
-    const startOfDay = new Date(
+    const jakartaOffsetMinutes = 7 * 60; // UTC+7
+    const jakartaNow = new Date(
+      nowDate.getTime() + jakartaOffsetMinutes * 60 * 1000,
+    );
+
+    const jakartaYear = jakartaNow.getUTCFullYear();
+    const jakartaMonth = jakartaNow.getUTCMonth();
+    const jakartaDate = jakartaNow.getUTCDate();
+
+    console.log(
+      `Sekarang Jakarta: ${jakartaNow.toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}`,
+    );
+
+    const startOfDayJakarta = new Date(
       Date.UTC(
-        nowDate.getUTCFullYear(),
-        nowDate.getUTCMonth(),
-        nowDate.getUTCDate(),
-        0,
-        0,
+        jakartaYear,
+        jakartaMonth,
+        jakartaDate,
+        -jakartaOffsetMinutes / 60,
         0,
         0,
       ),
-    ).toISOString();
-
-    const endOfDay = new Date(
+    );
+    const endOfDayJakarta = new Date(
       Date.UTC(
-        nowDate.getUTCFullYear(),
-        nowDate.getUTCMonth(),
-        nowDate.getUTCDate(),
-        23,
+        jakartaYear,
+        jakartaMonth,
+        jakartaDate,
+        23 - jakartaOffsetMinutes / 60,
         59,
         59,
         999,
       ),
-    ).toISOString();
+    );
 
     const closeSlots = await this.prisma.slots.updateMany({
       where: {
         date: {
-          gte: startOfDay,
-          lte: endOfDay,
+          gte: startOfDayJakarta.toISOString(),
+          lt: endOfDayJakarta.toISOString(),
         },
         isBooked: false,
         endTime: formattedTime,

@@ -128,11 +128,16 @@ export class GreedyRecommendation {
     );
 
     // Urutkan ruangan berdasarkan kesesuaian kapasitas (yang paling sesuai di depan)
+    // const sortedRooms = [...capacitySuitableRooms].sort(
+    //   (a, b) =>
+    //     a.capacity - preferred.participant -
+    //     (b.capacity - preferred.participant),
+    // );
+
     const sortedRooms = [...capacitySuitableRooms].sort(
       (a, b) =>
-        a.capacity -
-        preferred.participant -
-        (b.capacity - preferred.participant),
+        Math.abs(a.capacity - preferred.participant) -
+        Math.abs(b.capacity - preferred.participant),
     );
 
     const recommendations: RecommendationEntity[] = [];
@@ -208,25 +213,48 @@ export class GreedyRecommendation {
     return result;
   }
 
+  // private findConsecutiveSlots(slots: any[], count: number): any[] {
+  //   if (slots.length < count) return [];
+
+  //   for (let i = 0; i <= slots.length - count; i++) {
+  //     const potentialConsecutive = slots.slice(i, i + count);
+  //     let isConsecutive = true;
+
+  //     for (let j = 1; j < potentialConsecutive.length; j++) {
+  //       if (
+  //         potentialConsecutive[j - 1].endTime !==
+  //         potentialConsecutive[j].startTime
+  //       ) {
+  //         isConsecutive = false;
+  //         break;
+  //       }
+  //     }
+
+  //     if (isConsecutive) {
+  //       return potentialConsecutive;
+  //     }
+  //   }
+
+  //   return [];
+  // }
   private findConsecutiveSlots(slots: any[], count: number): any[] {
-    if (slots.length < count) return [];
+    let start = 0;
+    let end = 0;
+    let currentSlots: any[] = [];
 
-    for (let i = 0; i <= slots.length - count; i++) {
-      const potentialConsecutive = slots.slice(i, i + count);
-      let isConsecutive = true;
+    while (end < slots.length) {
+      if (currentSlots.length === count) return currentSlots;
 
-      for (let j = 1; j < potentialConsecutive.length; j++) {
-        if (
-          potentialConsecutive[j - 1].endTime !==
-          potentialConsecutive[j].startTime
-        ) {
-          isConsecutive = false;
-          break;
-        }
-      }
-
-      if (isConsecutive) {
-        return potentialConsecutive;
+      if (
+        currentSlots.length === 0 ||
+        currentSlots[currentSlots.length - 1].endTime === slots[end].startTime
+      ) {
+        currentSlots.push(slots[end]);
+        end++;
+      } else {
+        start++;
+        end = start;
+        currentSlots = [];
       }
     }
 

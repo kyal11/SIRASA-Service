@@ -4,13 +4,19 @@ import { PrismaService } from 'src/config/prisma/prisma.service';
 import { plainToClass, plainToInstance } from 'class-transformer';
 import { CreateRoomDto } from './validation/create-room.dto';
 import { UpdateRoomDto } from './validation/update-room.dto';
+import { NotificationsService } from 'src/features/notifications/notifications.service';
 
 @Injectable()
 export class RoomService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notification: NotificationsService,
+  ) {}
 
   async getAllRoom(): Promise<RoomEntity[]> {
-    const roomData = await this.prisma.rooms.findMany();
+    const roomData = await this.prisma.rooms.findMany({
+      orderBy: [{ floor: 'asc' }, { capacity: 'asc' }],
+    });
     return roomData.map((data) => plainToClass(RoomEntity, data));
   }
 
@@ -138,6 +144,15 @@ export class RoomService {
   }
 
   async createRoomWithSlot(roomData: CreateRoomDto): Promise<RoomEntity> {
+    const startMinutes = timeToMinutes(roomData.startTime);
+    const endMinutes = timeToMinutes(roomData.endTime);
+
+    if (startMinutes >= endMinutes) {
+      throw new HttpException(
+        'End time must be greater than start time',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     const createdRoom = await this.prisma.rooms.create({
       data: {
         name: roomData.name,
@@ -205,7 +220,15 @@ export class RoomService {
     if (!existingRoom) {
       throw new HttpException('Room not found', HttpStatus.NOT_FOUND);
     }
+    const startMinutes = timeToMinutes(roomData.startTime);
+    const endMinutes = timeToMinutes(roomData.endTime);
 
+    if (startMinutes >= endMinutes) {
+      throw new HttpException(
+        'End time must be greater than start time',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     // Step 2: Update room (data utama)
     const updatedRoom = await this.prisma.rooms.update({
       where: { id },
@@ -221,11 +244,9 @@ export class RoomService {
     // Step 3: Hitung jam baru untuk slot
     const startHour = parseInt(updatedRoom.startTime.split(':')[0], 10);
     const endHour = parseInt(updatedRoom.endTime.split(':')[0], 10);
-
     // Step 4: Tentukan hari mana yang mau diupdate
     const today = new Date();
-
-    const updateDays = roomData.updateDays ?? [1, 2, 3]; // Default update 3 hari
+    const updateDays = roomData.updateDays ?? [1, 2, 3];
     const datesToUpdate = updateDays.map((dayOffset) => {
       const date = new Date(today);
       date.setDate(today.getDate() + (dayOffset - 1));
@@ -233,19 +254,21 @@ export class RoomService {
     });
 
     // Step 5: Loop tiap tanggal yang mau diupdate
-    for (const date of datesToUpdate) {
-      // Optional filter createdAt di rentang 00:00 - 23:59
-      const startOfDay = new Date(`${date}T00:00:00Z`);
-      const endOfDay = new Date(`${date}T23:59:59Z`);
+    for (const dateStr of datesToUpdate) {
+      const startOfDay = new Date(`${dateStr}T00:00:00Z`);
+      const endOfDay = new Date(`${dateStr}T23:59:59Z`);
 
-      // Ambil semua slot untuk room + tanggal tersebut (by 'date')
+      // Ambil semua slot yang tanggalnya sama (by 'date' + 'roomId')
       const existingSlots = await this.prisma.slots.findMany({
         where: {
           roomId: id,
-          createdAt: {
+          date: {
             gte: startOfDay,
             lte: endOfDay,
           },
+        },
+        include: {
+          bookingSlot: true, // tambahin ini buat ambil relasi bookingSlot!
         },
       });
 
@@ -270,7 +293,7 @@ export class RoomService {
             data: {
               id: crypto.randomUUID(),
               roomId: id,
-              date: startOfDay.toISOString(), // Gunakan startOfDay
+              date: startOfDay.toISOString(),
               startTime: newSlot.startTime,
               endTime: newSlot.endTime,
               isBooked: false,
@@ -282,22 +305,77 @@ export class RoomService {
         }
       }
 
-      // Step 8: Hapus slot yang nggak termasuk di newSlotTimes
+      // Step 8: Hapus slot yang:
+      // - Tidak ada di newSlotTimes
+      // - Atau diluar startHour / endHour
       for (const slot of existingSlots) {
         const stillExists = newSlotTimes.find(
           (s) => s.startTime === slot.startTime && s.endTime === slot.endTime,
         );
 
         if (!stillExists) {
-          if (!slot.isBooked) {
-            await this.prisma.slots.delete({
-              where: { id: slot.id },
-            });
-          } else {
-            console.warn(
-              `Slot ${slot.id} di tanggal ${date} tidak dihapus karena sudah dibooking`,
-            );
+          // SLOT DILUAR RANGE → Cek apakah dia sudah di-booked
+          if (slot.isBooked) {
+            // Ambil semua bookingSlot terkait slot ini
+            const bookingSlots = slot.bookingSlot;
+
+            for (const bs of bookingSlots) {
+              const bookingId = bs.bookingId;
+
+              // Cek apakah booking tersebut masih punya slot lain
+              const dataBooking = await this.prisma.bookings.findUnique({
+                where: { id: bookingId },
+                include: {
+                  user: { include: { deviceTokens: true } },
+                  bookingSlot: {
+                    include: { slot: true },
+                  },
+                  room: true,
+                },
+              });
+
+              // Ambil semua slot dari bookingSlot
+              const slots = dataBooking.bookingSlot.map((bs) => bs.slot);
+
+              // Sort slot berdasarkan startTime
+              const sortedSlots = slots.sort((a, b) =>
+                a.startTime.localeCompare(b.startTime),
+              );
+
+              // Buat string waktu slot-nya
+              const timeSlot = sortedSlots
+                .map((slot) => `${slot.startTime} - ${slot.endTime}`)
+                .join(', ');
+
+              // Ambil tanggal booking dari slot pertama
+              const bookingDate = sortedSlots[0].date
+                .toISOString()
+                .split('T')[0];
+
+              // Kirim notifikasi terlebih dahulu
+              await this.notification.notifyBookingDeleting(
+                dataBooking.user.deviceTokens.map((d) => d.token),
+                dataBooking.room.name,
+                timeSlot,
+                bookingDate,
+              );
+
+              // Setelah kirim notifikasi → hapus relasi bookingSlot
+              await this.prisma.bookingSlot.deleteMany({
+                where: { bookingId },
+              });
+
+              // Hapus booking-nya
+              await this.prisma.bookings.delete({
+                where: { id: bookingId },
+              });
+            }
           }
+
+          // Terakhir, hapus slot-nya
+          await this.prisma.slots.delete({
+            where: { id: slot.id },
+          });
         }
       }
     }
@@ -324,4 +402,9 @@ export class RoomService {
       );
     }
   }
+}
+
+function timeToMinutes(timeStr: string): number {
+  const [hours, minutes] = timeStr.split(':').map(Number);
+  return hours * 60 + minutes;
 }

@@ -82,9 +82,23 @@ export class NotificationsService {
     roomName: string,
     bookingDate: string,
     timeSlot: string,
+    overTime?: string,
     icon?: string,
   ): Promise<void> {
-    const message = `Peminjaman Anda berhasil! ${roomName} telah dipesan untuk tanggal ${bookingDate}, pukul ${timeSlot}. Silakan validasi QR code Anda sebelum ${this.calculateDeadline(timeSlot)} untuk menghindari pembatalan otomatis.`;
+    let deadlineTime = '';
+    if (overTime) {
+      const overDate = new Date(overTime);
+      const hours = overDate.getHours().toString().padStart(2, '0');
+      const minutes = overDate.getMinutes().toString().padStart(2, '0');
+      const formattedOverTime = `${hours}:${minutes}`;
+
+      deadlineTime = this.calculateDeadline(formattedOverTime);
+    } else {
+      deadlineTime = this.calculateDeadline(timeSlot);
+    }
+
+    const message = `Peminjaman Anda berhasil! ${roomName} telah dipesan untuk tanggal ${bookingDate}, pukul ${timeSlot}. Silakan validasi QR code Anda sebelum ${deadlineTime} untuk menghindari pembatalan otomatis.`;
+
     await this.sendNotification(
       'Peminjaman Berhasil',
       message,
@@ -92,6 +106,7 @@ export class NotificationsService {
       icon,
     );
   }
+
   async notifyBookingCanceled(
     recipient: string | string[],
     roomName: string,
@@ -144,6 +159,22 @@ export class NotificationsService {
     const message = `Peminjaman Anda untuk ${roomName} pukul ${timeSlot} telah dibatalkan karena Anda tidak memvalidasi QR code tepat waktu.`;
     await this.sendNotification(
       'Pembatalan Otomatis',
+      message,
+      recipient,
+      icon,
+    );
+  }
+
+  async notifyBookingDeleting(
+    recipient: string | string[],
+    roomName: string,
+    timeSlot: string,
+    dateBooking: string,
+    icon?: string,
+  ): Promise<void> {
+    const message = `Peminjaman Anda untuk ${roomName} pukul ${timeSlot} pada hari ${dateBooking} telah dibatalkan karena terjadi perubahan waktu operasi ruangan.`;
+    await this.sendNotification(
+      'Peminjaman Dibatalkan',
       message,
       recipient,
       icon,
