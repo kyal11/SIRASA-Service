@@ -68,6 +68,7 @@ export class AuthService {
       user = await this.prisma.users.findUnique({
         where: {
           email: email,
+          deletedAt: null,
         },
       });
       if (!user) {
@@ -79,6 +80,7 @@ export class AuthService {
       user = await this.prisma.users.findUnique({
         where: {
           nim: nim,
+          deletedAt: null,
         },
       });
       if (!user) {
