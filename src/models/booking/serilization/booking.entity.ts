@@ -18,7 +18,7 @@ export class BookingEntity {
   userNim: string;
 
   @Expose()
-  phoneNumber: string;
+  userPhone: string;
 
   // @Expose()
   @Type(() => UserEntity)
