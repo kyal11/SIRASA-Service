@@ -55,7 +55,7 @@ import * as path from 'path';
           ),
         }),
         new winston.transports.File({
-          filename: path.join('/', 'uploads', 'logs', 'app.log'),
+          filename: path.join('/', 'logs', 'app.log'),
           level: 'info',
         }),
       ],
