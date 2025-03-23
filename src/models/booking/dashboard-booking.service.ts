@@ -38,7 +38,7 @@ export class DashboardBookingService {
       }
 
       dateFilter = {
-        createdAt: {
+        date: {
           gte: startDate.toISOString(),
           lte: endDate.toISOString(),
         },
@@ -57,7 +57,7 @@ export class DashboardBookingService {
         bookingSlot: {
           some: {
             slot: {
-              ...dateFilter, // Menggunakan createdAt dari slot
+              ...dateFilter,
             },
           },
         },

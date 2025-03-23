@@ -404,6 +404,7 @@ export class SchedulerJobNotificationService {
               slot: {
                 select: {
                   startTime: true,
+                  endTime: true,
                   date: true,
                 },
               },
@@ -461,7 +462,7 @@ export class SchedulerJobNotificationService {
       await this.notification.notifyAutomaticCancellation(
         cancelInfo.userTokens,
         cancelInfo.roomName,
-        `${booking.bookingSlot[0].slot.startTime} - booking.bookingSlot[1].slot.endTime}`,
+        `${booking.bookingSlot[0].slot.startTime} - ${booking.bookingSlot[1].slot.endTime}`,
       );
 
       console.log(`Auto-canceled booking ID ${cancelInfo.bookingId}`);
