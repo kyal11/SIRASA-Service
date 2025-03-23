@@ -15,6 +15,7 @@ export class RoomService {
 
   async getAllRoom(): Promise<RoomEntity[]> {
     const roomData = await this.prisma.rooms.findMany({
+      where: { deletedAt: null },
       orderBy: [{ floor: 'asc' }, { capacity: 'asc' }],
     });
     return roomData.map((data) => plainToClass(RoomEntity, data));
@@ -52,6 +53,9 @@ export class RoomService {
     }
 
     const roomData = await this.prisma.rooms.findMany({
+      where: {
+        deletedAt: null,
+      },
       orderBy: [{ floor: 'asc' }, { capacity: 'asc' }],
       include: {
         slots: {
@@ -102,6 +106,7 @@ export class RoomService {
     const existingRoom = await this.prisma.rooms.findUnique({
       where: {
         id: id,
+        deletedAt: null,
       },
       include: {
         slots: {
@@ -381,6 +386,21 @@ export class RoomService {
     }
 
     return plainToClass(RoomEntity, updatedRoom);
+  }
+
+  async softDeleteRoom(id: string): Promise<string> {
+    const existingRoom = await this.prisma.rooms.findUnique({
+      where: { id },
+    });
+    if (!existingRoom) {
+      throw new HttpException('Room not found', HttpStatus.NOT_FOUND);
+    }
+    await this.prisma.rooms.update({
+      where: { id },
+      data: { deletedAt: new Date() }, // Tandai sebagai terhapus
+    });
+
+    return `Room with ID ${id} has been successfully soft deleted.`;
   }
 
   async deleteRoom(id: string): Promise<string> {
