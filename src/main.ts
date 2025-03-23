@@ -21,7 +21,7 @@ async function bootstrap() {
     new GlobalContentTypeInterceptor(),
   );
   app.useGlobalFilters(new ExceptionsFilter());
-  app.use('/uploads', express.static(join(__dirname, '..', 'uploads')));
+  app.use('/uploads', express.static('/uploads'));
   app.use('/public', express.static(join(__dirname, '..', 'public')));
   app.use(
     '/.well-known',
