@@ -16,9 +16,9 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /etc/timezone:/etc/timezone:ro
-      - /root/app/SIRASA-Service/public:/app/public
-      - /root/app/SIRASA-Service/uploads:/app/uploads
-      - /root/app/SIRASA-Service/logs:/app/logs
+      - /root/app/SIRASA-Service/public:/public
+      - /root/app/SIRASA-Service/uploads:/uploads
+      - /root/app/SIRASA-Service/logs:/logs
     env_file:
       - .env
 
@@ -43,5 +43,3 @@ networks:
 
 volumes:
   redis-data:
-  uploads-data:
-  logs-data:
