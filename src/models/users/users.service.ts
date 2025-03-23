@@ -44,7 +44,7 @@ export class UsersService {
       if (start) whereCondition.createdAt.gte = start;
       if (end) whereCondition.createdAt.lte = end;
     }
-
+    whereCondition.deletedAt = null;
     const users = await this.prisma.users.findMany({
       where: whereCondition,
       include: {
@@ -77,6 +77,7 @@ export class UsersService {
       filters.role = role;
     }
 
+    filters.deletedAt = null;
     // Hitung total user dengan filter
     const total = await this.prisma.users.count({
       where: filters,
@@ -197,22 +198,30 @@ export class UsersService {
 
   async deleteUser(id: string): Promise<string> {
     const existingUser = await this.prisma.users.findUnique({
-      where: {
-        id: id,
-      },
+      where: { id },
     });
 
     if (!existingUser) {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
-    await this.prisma.users.delete({
-      where: {
-        id: id,
+
+    const timestamp = Date.now();
+    const anonymizedEmail = `deleted_${timestamp}_${existingUser.email}`;
+    const anonymizedNim = `deleted_${timestamp}_${existingUser.nim}`;
+
+    await this.prisma.users.update({
+      where: { id },
+      data: {
+        deletedAt: new Date(),
+        email: anonymizedEmail,
+        nim: anonymizedNim,
       },
     });
-    if (existingUser.imageUrl !== null) {
+
+    if (existingUser.imageUrl) {
       await this.fileService.deleteProfileImage(existingUser.imageUrl);
     }
-    return 'User deleted successfully';
+
+    return 'User soft deleted successfully';
   }
 }

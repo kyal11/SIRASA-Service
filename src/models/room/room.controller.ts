@@ -68,6 +68,6 @@ export class RoomController {
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
   async deleteRoom(@Param('id') id: string): Promise<void> {
-    await this.roomService.deleteRoom(id);
+    await this.roomService.softDeleteRoom(id);
   }
 }
