@@ -24,7 +24,7 @@ export class BookingExportsService {
       return {
         userName: booking.userName || '-',
         userNim: booking.userNim || '-',
-        phoneNumber: booking.phoneNumber || '-',
+        phoneNumber: booking.userPhone || '-',
         roomName: booking.roomName || '-',
         participant: booking.participant || 0,
         borrowDate: firstSlot?.createdAt

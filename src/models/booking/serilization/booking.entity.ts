@@ -18,6 +18,9 @@ export class BookingEntity {
   userNim: string;
 
   @Expose()
+  phoneNumber: string;
+
+  @Expose()
   userPhone: string;
 
   // @Expose()
