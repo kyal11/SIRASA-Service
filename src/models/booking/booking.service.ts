@@ -90,6 +90,7 @@ export class BookingService {
           slots: data.bookingSlot.map((slot) => ({
             id: slot.slot.id,
             slotId: slot.slot.id,
+            date: slot.slot.date,
             startTime: slot.slot.startTime,
             endTime: slot.slot.endTime,
             createdAt: slot.slot.createdAt,
@@ -213,6 +214,7 @@ export class BookingService {
           slots: data.bookingSlot.map((slot) => ({
             id: slot.slot.id,
             slotId: slot.slot.id,
+            date: slot.slot.date,
             startTime: slot.slot.startTime,
             endTime: slot.slot.endTime,
             createdAt: slot.slot.createdAt,
