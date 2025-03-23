@@ -205,6 +205,7 @@ export class BookingService {
         {
           ...data,
           userName: data.user?.name,
+          userPhone: data.user?.phoneNumber,
           userNim: data.user?.nim,
           roomName: data.room?.name,
           roomCapacity: data.room?.capacity,
