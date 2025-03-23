@@ -4,10 +4,7 @@ import * as path from 'path';
 
 @Injectable()
 export class FileService {
-  private readonly uploadFolder = path.join(
-    __dirname,
-    '../../../uploads/profiles',
-  );
+  private readonly uploadFolder = path.join('/', 'uploads', 'profiles');
 
   constructor() {
     if (!fs.existsSync(this.uploadFolder)) {
@@ -29,6 +26,7 @@ export class FileService {
         HttpStatus.BAD_REQUEST,
       );
     }
+
     const fileName = `${Date.now()}-${file.originalname}`;
     const filePath = path.join(this.uploadFolder, fileName);
 
@@ -36,8 +34,9 @@ export class FileService {
 
     return `/uploads/profiles/${fileName}`;
   }
+
   async deleteProfileImage(filePath: string): Promise<void> {
-    const absolutePath = path.join(__dirname, '../../../', filePath);
+    const absolutePath = path.join('/', filePath); // Pastikan path absolut juga benar!
 
     if (fs.existsSync(absolutePath)) {
       fs.unlinkSync(absolutePath);

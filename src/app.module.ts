@@ -30,7 +30,7 @@ import { BaseWebSocketGateway } from './base.gateaway';
 import { CrmModule } from './features/crm/crm.module';
 import { BookingExportsService } from './features/exports/booking-exports.service';
 import { UsersExportsService } from './features/exports/users-exports.service';
-
+import * as path from 'path';
 @Module({
   imports: [
     UsersModule,
@@ -55,7 +55,7 @@ import { UsersExportsService } from './features/exports/users-exports.service';
           ),
         }),
         new winston.transports.File({
-          filename: 'logs/app.log',
+          filename: path.join('/', 'uploads', 'logs', 'app.log'),
           level: 'info',
         }),
       ],
