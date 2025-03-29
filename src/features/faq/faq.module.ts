@@ -4,7 +4,7 @@ import { FaqController } from './faq.controller';
 import { PrismaService } from 'src/config/prisma/prisma.service';
 
 @Module({
-  providers: [FaqService],
-  controllers: [FaqController, PrismaService],
+  providers: [FaqService, PrismaService],
+  controllers: [FaqController],
 })
 export class FaqModule {}
