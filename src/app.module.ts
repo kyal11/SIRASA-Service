@@ -32,6 +32,7 @@ import { BookingExportsService } from './features/exports/booking-exports.servic
 import { UsersExportsService } from './features/exports/users-exports.service';
 import { FaqModule } from './features/faq/faq.module';
 import * as path from 'path';
+import { FaqService } from './features/faq/faq.service';
 @Module({
   imports: [
     UsersModule,
@@ -82,6 +83,7 @@ import * as path from 'path';
     BaseWebSocketGateway,
     UsersExportsService,
     BookingExportsService,
+    FaqService,
   ],
 })
 export class AppModule {}
