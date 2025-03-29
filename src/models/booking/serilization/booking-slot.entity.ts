@@ -20,6 +20,9 @@ export class BookingSlotEntity {
   @Expose()
   endTime: string;
 
+  @Expose()
+  date: Date;
+
   @Type(() => SlotEntity)
   slot: SlotEntity;
 

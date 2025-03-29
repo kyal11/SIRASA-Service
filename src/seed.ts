@@ -38,20 +38,20 @@ async function main() {
     },
   ];
 
-  for (const user of users) {
-    const existingUser = await prisma.users.findUnique({
-      where: { email: user.email },
-    });
+  // for (const user of users) {
+  //   const existingUser = await prisma.users.findUnique({
+  //     where: { email: user.email },
+  //   });
 
-    if (!existingUser) {
-      await prisma.users.create({
-        data: user,
-      });
-      console.log(`User ${user.email} created successfully.`);
-    } else {
-      console.log(`User ${user.email} already exists.`);
-    }
-  }
+  //   if (!existingUser) {
+  //     await prisma.users.create({
+  //       data: user,
+  //     });
+  //     console.log(`User ${user.email} created successfully.`);
+  //   } else {
+  //     console.log(`User ${user.email} already exists.`);
+  //   }
+  // }
 
   // const roomData = [
   //   {
@@ -108,6 +108,56 @@ async function main() {
   //     );
   //   }
   // }
+  // Seed FAQ
+  const faqs = [
+    {
+      question: 'Bagaimana cara meminjam ruangan?',
+      answer:
+        'Anda dapat memesan ruangan melalui aplikasi dengan memilih tanggal, jam, dan ruangan yang tersedia. Setelah pemesanan berhasil, Anda akan mendapatkan QR Code untuk validasi peminjaman.',
+    },
+    {
+      question: 'Berapa lama saya bisa meminjam ruangan?',
+      answer:
+        'Ruangan dapat dipinjam maksimal 2 jam dalam satu kali pemesanan.',
+    },
+    {
+      question: 'Bisakah saya memperpanjang waktu peminjaman?',
+      answer:
+        'Saat ini, perpanjangan hanya dapat dilakukan dengan melakukan peminjaman ulang jika ruangan masih tersedia setelah waktu peminjaman selesai.',
+    },
+    {
+      question: 'Berapa hari sebelumnya saya bisa melakukan pemesanan?',
+      answer: 'Anda bisa melakukan pemesanan hingga 2 hari ke depan.',
+    },
+    {
+      question: 'Bagaimana cara menggunakan QR Code?',
+      answer:
+        'QR Code yang didapatkan setelah pemesanan harus dipindai oleh admin perpustakaan untuk validasi peminjaman. Jika tidak dipindai dalam 15 menit setelah waktu peminjaman dimulai, pemesanan akan dibatalkan otomatis.',
+    },
+    {
+      question: 'Apa yang terjadi jika saya lupa memvalidasi QR Code?',
+      answer:
+        'Jika dalam 15 menit setelah waktu peminjaman Anda tidak melakukan validasi, pemesanan akan dibatalkan secara otomatis dan ruangan dapat dipesan oleh orang lain.',
+    },
+    {
+      question: 'Bagaimana cara membatalkan peminjaman?',
+      answer:
+        'Anda dapat membatalkan peminjaman melalui aplikasi sebelum waktu peminjaman dimulai.',
+    },
+  ];
+
+  for (const faq of faqs) {
+    const existingFaq = await prisma.faq.findFirst({
+      where: { question: faq.question },
+    });
+
+    if (!existingFaq) {
+      await prisma.faq.create({ data: faq });
+      console.log(`FAQ: "${faq.question}" added successfully.`);
+    } else {
+      console.log(`FAQ: "${faq.question}" already exists.`);
+    }
+  }
 }
 
 main()
