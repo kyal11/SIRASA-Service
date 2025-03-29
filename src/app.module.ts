@@ -31,7 +31,6 @@ import { CrmModule } from './features/crm/crm.module';
 import { BookingExportsService } from './features/exports/booking-exports.service';
 import { UsersExportsService } from './features/exports/users-exports.service';
 import { FaqModule } from './features/faq/faq.module';
-import { FaqModule } from './features/faq/faq.module';
 import * as path from 'path';
 @Module({
   imports: [
