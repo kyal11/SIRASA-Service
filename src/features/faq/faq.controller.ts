@@ -10,7 +10,7 @@ import {
 import { FaqService } from './faq.service';
 import { CreateFaqDto } from './serilization/create-faq.dto';
 import { UpdateFaqDto } from './serilization/update-faq.dto';
-@Controller('faq')
+@Controller({ path: 'faq', version: '1' })
 export class FaqController {
   constructor(private readonly faqService: FaqService) {}
 
