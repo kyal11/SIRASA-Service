@@ -12,7 +12,7 @@ export class FaqService {
   }
 
   async findAll() {
-    return await this.prisma.faq.findMany({ orderBy: { createdAt: 'desc' } });
+    return await this.prisma.faq.findMany({ orderBy: { createdAt: 'asc' } });
   }
 
   async findOne(id: string) {
