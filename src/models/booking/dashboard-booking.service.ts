@@ -70,7 +70,11 @@ export class DashboardBookingService {
     ).length;
     const bookedBookings = bookings.filter((b) => b.status === 'booked').length;
     const doneBookings = bookings.filter((b) => b.status === 'done').length;
-    const totalRooms = await this.prisma.rooms.count();
+    const totalRooms = await this.prisma.rooms.count({
+      where: {
+        deletedAt: null,
+      },
+    });
 
     return new ApiResponse<{
       totalBookings: number;
