@@ -13,7 +13,11 @@ export class CrmService {
       _count: { role: true },
     });
 
-    const totalRooms = await this.prisma.rooms.count();
+    const totalRooms = await this.prisma.rooms.count({
+      where: {
+        deletedAt: null,
+      },
+    });
     const dataRooms = await this.prisma.rooms.findMany();
     const totalBookings = await this.prisma.bookings.count();
     const bookingStatusCount = await this.prisma.bookings.groupBy({
