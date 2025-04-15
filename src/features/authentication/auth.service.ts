@@ -111,13 +111,25 @@ export class AuthService {
       60 * 60 * 24 * 7,
     );
     if (deviceToken) {
-      const existingToken = await this.prisma.device_token.findUnique({
+      const existingToken = await this.prisma.device_token.findFirst({
         where: {
           token: deviceToken,
         },
       });
-
-      if (!existingToken) {
+      if (existingToken && existingToken.userId !== user.id) {
+        await this.prisma.device_token.delete({
+          where: {
+            token: deviceToken,
+          },
+        });
+      }
+      const isTokenAlreadyAssigned = await this.prisma.device_token.findFirst({
+        where: {
+          token: deviceToken,
+          userId: user.id,
+        },
+      });
+      if (!isTokenAlreadyAssigned) {
         await this.prisma.device_token.create({
           data: {
             token: deviceToken,
@@ -131,9 +143,12 @@ export class AuthService {
     return userEntity.loginResponse(jwtToken);
   }
 
-  async logout(token: string) {
+  async logout(token: string, deviceToken?: string) {
     const isBlacklisted = await this.redisService.get('blacklist:' + token);
 
+    const payload = this.jwtService.verify(token);
+
+    const userId = payload.userId;
     if (isBlacklisted) {
       throw new HttpException(
         'Token already blacklisted',
@@ -145,7 +160,19 @@ export class AuthService {
       'blacklisted',
       60 * 60 * 24 * 7,
     );
-
+    if (deviceToken && userId) {
+      try {
+        await this.prisma.device_token.deleteMany({
+          where: {
+            token: deviceToken,
+            userId: userId,
+          },
+        });
+        console.log(`Device token removed for user ${userId}: ${deviceToken}`);
+      } catch (error) {
+        console.error('Error removing device token on logout:', error);
+      }
+    }
     return 'Logout successfully';
   }
 
