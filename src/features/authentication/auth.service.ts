@@ -144,11 +144,9 @@ export class AuthService {
   }
 
   async logout(token: string, deviceToken?: string) {
-    const isBlacklisted = await this.redisService.get('blacklist:' + token);
-
     const payload = this.jwtService.verify(token);
-
     const userId = payload.userId;
+    const isBlacklisted = await this.redisService.get('blacklist:' + token);
     if (isBlacklisted) {
       throw new HttpException(
         'Token already blacklisted',
