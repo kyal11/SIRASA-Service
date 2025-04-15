@@ -10,6 +10,7 @@ import {
   UseFilters,
   UseGuards,
   Get,
+  Headers,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './validation/login.dto';
@@ -43,8 +44,11 @@ export class AuthController {
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   @SetMetadata('message', 'User logged out successfully')
-  async logout(@Req() req: Request, @Body('deviceToken') deviceToken?: string) {
-    const token = req.headers['authorization']?.split(' ')[1];
+  async logout(
+    @Headers('authorization') authHeader: string,
+    @Body('deviceToken') deviceToken?: string,
+  ) {
+    const token = authHeader?.split(' ')[1];
     return await this.AuthService.logout(token, deviceToken);
   }
 
