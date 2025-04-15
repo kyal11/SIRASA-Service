@@ -32,6 +32,7 @@ export class RegisterDto {
   nim: string;
 
   @IsString()
+  @IsNotEmpty()
   phoneNumber: string;
 
   @IsBoolean()
