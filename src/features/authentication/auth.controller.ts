@@ -43,9 +43,9 @@ export class AuthController {
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   @SetMetadata('message', 'User logged out successfully')
-  async logout(@Req() req: Request) {
+  async logout(@Req() req: Request, @Body('deviceToken') deviceToken?: string) {
     const token = req.headers['authorization']?.split(' ')[1];
-    return await this.AuthService.logout(token);
+    return await this.AuthService.logout(token, deviceToken);
   }
 
   @Post('refresh-token')

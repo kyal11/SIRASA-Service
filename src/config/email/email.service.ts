@@ -54,7 +54,7 @@ export class EmailService {
 
       const source = await readFile(templatePath, 'utf8');
       const template = Handlebars.compile(source);
-      const html = template({ name, resetUrl });
+      const html = template({ name, resetUrl, appUrl: process.env.APP_URL });
       console.log(email);
       console.log(`Sending password reset email to ${email}`);
       await this.sendMail(email, 'Reset Password Sirasa', html);
@@ -78,7 +78,7 @@ export class EmailService {
 
       const source = await readFile(templatePath, 'utf8');
       const template = Handlebars.compile(source);
-      const html = template({ name, verifyUrl });
+      const html = template({ name, verifyUrl, appUrl: process.env.APP_URL });
       console.log(email);
       console.log(`Verify Email to ${email}`);
       await this.sendMail(email, 'Active & Verify your account', html);
