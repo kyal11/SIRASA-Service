@@ -94,43 +94,34 @@ export class SchedulerJobNotificationService {
   @Cron('*/10 * * * *')
   async handleBookingDeadline(): Promise<void> {
     const nowDate = new Date();
-    const timeDeadline = new Date(nowDate.getTime());
-    const formattedTime = this.formatTime(timeDeadline);
-    const jakartaOffsetMinutes = 7 * 60; // UTC+7
-    const jakartaNow = new Date(
-      nowDate.getTime() + jakartaOffsetMinutes * 60 * 1000,
-    );
-
-    const jakartaYear = jakartaNow.getUTCFullYear();
-    const jakartaMonth = jakartaNow.getUTCMonth();
-    const jakartaDate = jakartaNow.getUTCDate();
-
-    console.log(
-      `Sekarang Jakarta: ${jakartaNow.toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}`,
-    );
-
-    const startOfDayJakarta = new Date(
+    const deadlineTime = new Date(nowDate.getTime());
+    const formattedTime = this.formatTime(deadlineTime);
+    const startOfDay = new Date(
       Date.UTC(
-        jakartaYear,
-        jakartaMonth,
-        jakartaDate,
-        -jakartaOffsetMinutes / 60,
+        nowDate.getUTCFullYear(),
+        nowDate.getUTCMonth(),
+        nowDate.getUTCDate(),
+        0,
+        0,
         0,
         0,
       ),
-    );
-    const endOfDayJakarta = new Date(
+    ).toISOString();
+
+    const endOfDay = new Date(
       Date.UTC(
-        jakartaYear,
-        jakartaMonth,
-        jakartaDate,
-        23 - jakartaOffsetMinutes / 60,
+        nowDate.getUTCFullYear(),
+        nowDate.getUTCMonth(),
+        nowDate.getUTCDate(),
+        23,
         59,
         59,
         999,
       ),
+    ).toISOString();
+    console.log(
+      `Checking bookings for dedline at ${startOfDay}- ${endOfDay} in ${formattedTime}...`,
     );
-
     const bookings = await this.prisma.bookings.findMany({
       where: {
         status: 'booked',
@@ -138,8 +129,8 @@ export class SchedulerJobNotificationService {
           some: {
             slot: {
               date: {
-                gte: startOfDayJakarta.toISOString(),
-                lt: endOfDayJakarta.toISOString(),
+                gte: startOfDay,
+                lt: endOfDay,
               },
               startTime: formattedTime,
             },
@@ -185,9 +176,8 @@ export class SchedulerJobNotificationService {
   async handleAutoCancel(): Promise<void> {
     const nowDate = new Date();
 
-    console.log(
-      `Checking for auto-cancel at ${nowDate.toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}...`,
-    );
+    console.log(`
+      Checking for auto-cancel at ${nowDate.toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}`);
     const jakartaOffsetMinutes = 7 * 60; // UTC+7
     const jakartaNow = new Date(
       nowDate.getTime() + jakartaOffsetMinutes * 60 * 1000,
@@ -197,9 +187,8 @@ export class SchedulerJobNotificationService {
     const jakartaMonth = jakartaNow.getUTCMonth();
     const jakartaDate = jakartaNow.getUTCDate();
 
-    console.log(
-      `Sekarang Jakarta: ${jakartaNow.toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}`,
-    );
+    console.log(`
+      Sekarang Jakarta: ${jakartaNow.toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}`);
 
     const startOfDayJakarta = new Date(
       Date.UTC(
@@ -222,7 +211,10 @@ export class SchedulerJobNotificationService {
         999,
       ),
     );
-
+    console.log(`
+      Start of Day Jakarta: ${startOfDayJakarta.toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}`);
+    console.log(`
+      End of Day Jakarta: ${endOfDayJakarta.toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}`);
     // Ambil semua booking yang masih "booked" hari ini
     const bookings = await this.prisma.bookings.findMany({
       where: {
@@ -320,15 +312,13 @@ export class SchedulerJobNotificationService {
 
       if (isAfterSlotStart) {
         // Kalau booking dibuat setelah waktu start slot ➔ cancelDeadline = createdAt + 10 menit
-        const adjustedBookingStart = new Date(
-          booking.createdAt.getTime() - 7 * 60 * 60 * 1000,
-        );
+        const adjustedBookingStart = new Date(booking.createdAt.getTime());
 
         console.log(
           `[AFTER SLOT START] Booking Created At (Raw) ➔ ${booking.createdAt.toISOString()}`,
         );
         console.log(
-          `[AFTER SLOT START] Booking Created At (Adjusted -7 jam) ➔ ${adjustedBookingStart.toISOString()}`,
+          `[AFTER SLOT START] Booking Created At ➔ ${adjustedBookingStart.toISOString()}`,
         );
 
         cancelDeadline = new Date(
@@ -421,9 +411,7 @@ export class SchedulerJobNotificationService {
       const firstSlot = sortedSlots[0].slot;
 
       // Convert first slot startTime ke Date
-      const [startHour, startMinute] = firstSlot.startTime
-        .split(':')
-        .map(Number);
+      const [startHour, startMinute] = firstSlot.endTime.split(':').map(Number);
       const slotStartDate = new Date(firstSlot.date);
       slotStartDate.setUTCHours(startHour);
       slotStartDate.setUTCMinutes(startMinute);
@@ -449,7 +437,6 @@ export class SchedulerJobNotificationService {
       console.log(`Now ➔ ${new Date().toISOString()}`);
 
       if (new Date() <= freeSlotDeadline) {
-        // Masih dalam 40 menit ➔ update isBooked = false
         await this.prisma.slots.updateMany({
           where: { id: { in: cancelInfo.slotIds } },
           data: { isBooked: false },
@@ -568,43 +555,34 @@ export class SchedulerJobNotificationService {
   @Cron('*/10 * * * *')
   async handleBookingEndTimeReminder(): Promise<void> {
     const nowDate = new Date();
-    const timeDeadline = new Date(nowDate.getTime() + 10 * 60 * 1000);
-    const formattedTime = this.formatTime(timeDeadline);
-    const jakartaOffsetMinutes = 7 * 60; // UTC+7
-    const jakartaNow = new Date(
-      nowDate.getTime() + jakartaOffsetMinutes * 60 * 1000,
-    );
-
-    const jakartaYear = jakartaNow.getUTCFullYear();
-    const jakartaMonth = jakartaNow.getUTCMonth();
-    const jakartaDate = jakartaNow.getUTCDate();
-
-    console.log(
-      `Sekarang Jakarta: ${jakartaNow.toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}`,
-    );
-
-    const startOfDayJakarta = new Date(
+    const tenMinutesLater = new Date(nowDate.getTime() + 10 * 60 * 1000);
+    const formattedTime = this.formatTime(tenMinutesLater);
+    const startOfDay = new Date(
       Date.UTC(
-        jakartaYear,
-        jakartaMonth,
-        jakartaDate,
-        -jakartaOffsetMinutes / 60,
+        nowDate.getUTCFullYear(),
+        nowDate.getUTCMonth(),
+        nowDate.getUTCDate(),
+        0,
+        0,
         0,
         0,
       ),
-    );
-    const endOfDayJakarta = new Date(
+    ).toISOString();
+
+    const endOfDay = new Date(
       Date.UTC(
-        jakartaYear,
-        jakartaMonth,
-        jakartaDate,
-        23 - jakartaOffsetMinutes / 60,
+        nowDate.getUTCFullYear(),
+        nowDate.getUTCMonth(),
+        nowDate.getUTCDate(),
+        23,
         59,
         59,
         999,
       ),
+    ).toISOString();
+    console.log(
+      `Checking bookings for end time reminder at ${startOfDay}- ${endOfDay} in ${formattedTime}...`,
     );
-
     const bookings = await this.prisma.bookings.findMany({
       where: {
         status: 'done',
@@ -612,8 +590,8 @@ export class SchedulerJobNotificationService {
           some: {
             slot: {
               date: {
-                gte: startOfDayJakarta.toISOString(),
-                lt: endOfDayJakarta.toISOString(),
+                gte: startOfDay,
+                lt: endOfDay,
               },
               endTime: formattedTime,
             },
