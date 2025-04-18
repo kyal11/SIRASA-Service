@@ -611,9 +611,11 @@ export class BookingService {
     const bookingDateStr = bookingCreatedAtUTC.toLocaleDateString('id-ID', {
       timeZone: 'Asia/Jakarta',
     });
+    console.log(`Booking date (WIB): ${bookingDateStr}`);
     const slotDateStr = slotStartDateUTC.toLocaleDateString('id-ID', {
       timeZone: 'Asia/Jakarta',
     });
+    console.log(`Slot date (WIB): ${slotDateStr}`);
     const isSameDate = bookingDateStr === slotDateStr;
 
     // Ambil jam & menit Jakarta
@@ -628,8 +630,9 @@ export class BookingService {
     const bookingTotalMinutes = bookingHour * 60 + bookingMinute;
     const slotStartTotalMinutes = startHour * 60 + startMinute;
     const isAfterSlotStart = bookingTotalMinutes > slotStartTotalMinutes;
-
-    // Logic utama
+    console.log(
+      `isSameDate: ${isSameDate} && isAfterSlotStart: ${isAfterSlotStart}`,
+    );
     if (isSameDate && isAfterSlotStart) {
       console.log(
         'Booking dibuat di hari yang sama DAN setelah startTime slot pertama (WIB)!',
