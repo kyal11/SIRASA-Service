@@ -600,10 +600,6 @@ export class BookingService {
     slotStartDateUTC.setUTCMinutes(startMinute);
     slotStartDateUTC.setUTCSeconds(0);
     slotStartDateUTC.setUTCMilliseconds(0);
-
-    // ❌ Jangan tambahkan offset manual!
-    // Gunakan `toLocaleString` atau `getUTCHours()` saja kalau butuh
-
     // Waktu booking dibuat (UTC)
     const bookingCreatedAtUTC = new Date(booking.createdAt);
 
@@ -612,7 +608,11 @@ export class BookingService {
       timeZone: 'Asia/Jakarta',
     });
     console.log(`Booking date (WIB): ${bookingDateStr}`);
-    const slotDateStr = slotStartDateUTC.toLocaleDateString('id-ID', {
+    const slotStartDateWIB = new Date(
+      slotStartDateUTC.getTime() - 7 * 60 * 60 * 1000,
+    );
+
+    const slotDateStr = slotStartDateWIB.toLocaleDateString('id-ID', {
       timeZone: 'Asia/Jakarta',
     });
     console.log(`Slot date (WIB): ${slotDateStr}`);
