@@ -446,10 +446,13 @@ export class SchedulerJobNotificationService {
         console.log(`⛔ Melewati batas 40 menit, slot tidak di-free-kan.`);
       }
 
+      const startTime = sortedSlots[0]?.slot.startTime ?? '-';
+      const endTime = sortedSlots[sortedSlots.length - 1]?.slot.endTime ?? '-';
+
       await this.notification.notifyAutomaticCancellation(
         cancelInfo.userTokens,
         cancelInfo.roomName,
-        `${booking.bookingSlot[0].slot.startTime} - ${booking.bookingSlot[1].slot.endTime}`,
+        `${startTime} - ${endTime}`,
       );
 
       console.log(`Auto-canceled booking ID ${cancelInfo.bookingId}`);
