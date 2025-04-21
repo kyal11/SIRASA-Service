@@ -17,7 +17,7 @@ export class BookingService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly NotificationsService: NotificationsService,
-    private readonly recommendation: GreedyRecommendation,
+    private readonly GreedyRecommendation: GreedyRecommendation,
     private readonly bookingGateway: BookingGateway,
   ) {}
 
@@ -503,7 +503,10 @@ export class BookingService {
       }
     }
 
-    const rooms = await this.prisma.rooms.findMany({
+    const allDataRooms = await this.prisma.rooms.findMany({
+      where: {
+        deletedAt: null,
+      },
       include: {
         slots: {
           orderBy: {
@@ -516,13 +519,13 @@ export class BookingService {
       },
     });
     if (room.capacity < dataBooking.participant) {
-      const recommendations = this.recommendation.recommend(
+      const recommendations = this.GreedyRecommendation.recommend(
         {
           roomId: dataBooking.roomId,
           participant: dataBooking.participant,
           slots,
         },
-        rooms,
+        allDataRooms,
       );
       return plainToInstance(ApiResponse, {
         status: 'recommendation',
@@ -533,13 +536,13 @@ export class BookingService {
     }
     const bookedSlots = slots.filter((slot) => slot.isBooked);
     if (bookedSlots.length > 0) {
-      const recommendations = this.recommendation.recommend(
+      const recommendations = this.GreedyRecommendation.recommend(
         {
           roomId: dataBooking.roomId,
           participant: dataBooking.participant,
           slots,
         },
-        rooms,
+        allDataRooms,
       );
 
       return plainToInstance(ApiResponse, {
