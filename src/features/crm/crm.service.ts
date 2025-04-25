@@ -13,6 +13,9 @@ export class CrmService {
       },
     });
     const rolesCount = await this.prisma.users.groupBy({
+      where: {
+        deletedAt: null,
+      },
       by: ['role'],
       _count: { role: true },
     });
