@@ -7,7 +7,11 @@ export class CrmService {
   constructor(private readonly prisma: PrismaService) {}
 
   async dataSummary(): Promise<DataSummary> {
-    const totalUsers = await this.prisma.users.count();
+    const totalUsers = await this.prisma.users.count({
+      where: {
+        deletedAt: null,
+      },
+    });
     const rolesCount = await this.prisma.users.groupBy({
       by: ['role'],
       _count: { role: true },
