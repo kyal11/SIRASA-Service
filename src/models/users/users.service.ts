@@ -159,19 +159,19 @@ export class UsersService {
     userData: UpdateUserDto,
     file?: Express.Multer.File,
   ): Promise<UserEntity> {
-    const { password, ...anyData } = userData;
-
     const existingUser = await this.prisma.users.findUnique({
       where: {
         id: id,
       },
     });
+
     if (!existingUser) {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
+    const dataToUpdate = { ...userData };
 
-    if (password) {
-      userData.password = await bcrypt.hash(password, 10);
+    if (dataToUpdate.password) {
+      dataToUpdate.password = await bcrypt.hash(dataToUpdate.password, 10);
     }
 
     let imageUrl = existingUser.imageUrl;
@@ -179,7 +179,6 @@ export class UsersService {
       if (existingUser.imageUrl) {
         await this.fileService.deleteProfileImage(existingUser.imageUrl);
       }
-
       imageUrl = await this.fileService.uploadFileImage(file);
     }
 
@@ -188,7 +187,7 @@ export class UsersService {
         id: id,
       },
       data: {
-        ...anyData,
+        ...dataToUpdate,
         imageUrl: imageUrl,
       },
     });
