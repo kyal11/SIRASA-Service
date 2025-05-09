@@ -554,37 +554,11 @@ export class BookingService {
     }
 
     // Buat Booking
-    // const booking = await this.prisma.bookings.create({
-    //   data: {
-    //     userId: userId,
-    //     roomId: dataBooking.roomId,
-    //     bookingSlot: {
-    //       create: dataBooking.bookingSlotId.map((slotId) => ({ slotId })),
-    //     },
-    //     participant: dataBooking.participant,
-    //     description: dataBooking.description,
-    //   },
-    //   include: {
-    //     user: true,
-    //     room: true,
-    //     bookingSlot: {
-    //       include: {
-    //         slot: true,
-    //       },
-    //     },
-    //   },
-    // });
-    // await this.prisma.slots.updateMany({
-    //   where: { id: { in: dataBooking.bookingSlotId } },
-    //   data: { isBooked: true },
-    // });
     const booking = await this.prisma.$transaction(async (tx) => {
-      // Update room status
       await tx.slots.updateMany({
         where: { id: { in: dataBooking.bookingSlotId } },
         data: { isBooked: true },
       });
-      // Create booking entry
       const newBooking = await tx.bookings.create({
         data: {
           userId: userId,

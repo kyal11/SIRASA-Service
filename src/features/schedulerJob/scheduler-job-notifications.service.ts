@@ -626,11 +626,24 @@ export class SchedulerJobNotificationService {
 
     console.log(`Booking data endTime:\n${JSON.stringify(bookings, null, 2)}`);
     for (const booking of bookings) {
-      await this.notification.notifyEndTimeReminder(
-        booking.user.deviceTokens.map((device) => device.token),
-        booking.room.name,
-        10,
-      );
+      // await this.notification.notifyEndTimeReminder(
+      //   booking.user.deviceTokens.map((device) => device.token),
+      //   booking.room.name,
+      //   10,
+      // );
+      const sortedSlots = booking.bookingSlot.sort((a, b) => {
+        return a.slot.endTime.localeCompare(b.slot.endTime);
+      });
+
+      const lastSlot = sortedSlots[sortedSlots.length - 1];
+
+      if (lastSlot && lastSlot.slot.endTime === formattedTime) {
+        await this.notification.notifyEndTimeReminder(
+          booking.user.deviceTokens.map((device) => device.token),
+          booking.room.name,
+          10,
+        );
+      }
     }
 
     console.log('Cron job for booking reminder executed.');
