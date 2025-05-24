@@ -97,7 +97,7 @@ export class GreedyRecommendation {
     let end = 0;
     let currentSlots: any[] = [];
 
-    while (end < slots.length) {
+    while (end <= slots.length) {
       if (currentSlots.length === count) return currentSlots;
 
       if (
