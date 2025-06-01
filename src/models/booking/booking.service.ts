@@ -790,6 +790,12 @@ export class BookingService {
         HttpStatus.NOT_FOUND,
       );
     }
+    if (booking.status == statusBooking.cancel) {
+      throw new HttpException(
+        'Peminjaman telah dibatalkan!',
+        HttpStatus.NOT_FOUND,
+      );
+    }
     const updatedBooking = await this.prisma.bookings.update({
       where: {
         id: id,
