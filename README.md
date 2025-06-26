@@ -14,7 +14,7 @@
 - 📦 Manajemen data pengguna, ruangan, slot waktu
 - 🔁 Cache dengan Redis
 - 🔥 Integrasi dengan Firebase Admin SDK
-
+- ⚡ Implementasi WebSocket (Socket.IO)
 ---
 
 ## 🛠️ Teknologi yang Digunakan
