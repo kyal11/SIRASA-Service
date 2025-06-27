@@ -271,7 +271,6 @@ export class SchedulerJobNotificationService {
       });
 
       const firstSlot = sortedSlots[0].slot;
-
       // Convert first slot startTime ke Date
       const [startHour, startMinute] = firstSlot.startTime
         .split(':')
@@ -290,24 +289,33 @@ export class SchedulerJobNotificationService {
         minute: '2-digit',
         hour12: false,
       });
+      // Konversi tanggal slot dan now ke zona Jakarta
+      const slotDateJakarta = new Date(
+        new Date(firstSlot.date).getTime() - 7 * 60 * 60 * 1000,
+      );
+      const nowJakarta = new Date(nowDate.getTime() + 7 * 60 * 60 * 1000);
 
+      const isSameDate =
+        slotDateJakarta.getFullYear() === nowJakarta.getFullYear() &&
+        slotDateJakarta.getMonth() === nowJakarta.getMonth() &&
+        slotDateJakarta.getDate() === nowJakarta.getDate();
       const [bookingHour, bookingMinute] = bookingTime.split('.').map(Number);
       const bookingTotalMinutes = bookingHour * 60 + bookingMinute;
       const slotStartTotalMinutes = startHour * 60 + startMinute;
-
+      const isAfterSlotStart =
+        isSameDate && bookingTotalMinutes > slotStartTotalMinutes;
       console.log('=============================');
-      console.log(`Booking ID       ➔ ${booking.id}`);
+      console.log(`Booking ID         ➔ ${booking.id}`);
       console.log(
-        `Booking time     ➔ ${bookingTime} ➔ ${bookingHour} jam ${bookingMinute} menit`,
+        `Booking time       ➔ ${bookingTime} ➔ ${bookingHour}:${bookingMinute}`,
       );
-      console.log(`Slot start time  ➔ ${startHour}:${startMinute}`);
-      console.log(`Booking Total Minutes ➔ ${bookingTotalMinutes}`);
-      console.log(`Slot Start Total Minutes ➔ ${slotStartTotalMinutes}`);
-
-      const isAfterSlotStart = bookingTotalMinutes > slotStartTotalMinutes;
-      console.log(
-        `Apakah booking dibuat setelah slot start? ➔ ${isAfterSlotStart}`,
-      );
+      console.log(`Slot start time    ➔ ${startHour}:${startMinute}`);
+      console.log(`Booking Minutes    ➔ ${bookingTotalMinutes}`);
+      console.log(`Slot Start Minutes ➔ ${slotStartTotalMinutes}`);
+      console.log(`Tanggal Slot       ➔ ${slotDateJakarta.toDateString()}`);
+      console.log(`Tanggal Sekarang   ➔ ${nowJakarta.toDateString()}`);
+      console.log(`Tanggal Sama?      ➔ ${isSameDate}`);
+      console.log(`isAfterSlotStart   ➔ ${isAfterSlotStart}`);
       console.log('=============================');
 
       if (isAfterSlotStart) {
