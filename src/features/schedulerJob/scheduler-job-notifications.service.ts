@@ -294,16 +294,20 @@ export class SchedulerJobNotificationService {
         new Date(firstSlot.date).getTime() - 7 * 60 * 60 * 1000,
       );
       const nowJakarta = new Date(nowDate.getTime() + 7 * 60 * 60 * 1000);
-
-      const isSameDate =
-        slotDateJakarta.getFullYear() === nowJakarta.getFullYear() &&
-        slotDateJakarta.getMonth() === nowJakarta.getMonth() &&
-        slotDateJakarta.getDate() === nowJakarta.getDate();
+      const bookingCreatedAtJakarta = new Date(
+        bookingCreatedAtUTC.getTime() + 7 * 60 * 60 * 1000,
+      );
+      const isSameDay =
+        bookingCreatedAtJakarta.getFullYear() === nowJakarta.getFullYear() &&
+        bookingCreatedAtJakarta.getMonth() === nowJakarta.getMonth() &&
+        bookingCreatedAtJakarta.getDate() === nowJakarta.getDate();
       const [bookingHour, bookingMinute] = bookingTime.split('.').map(Number);
       const bookingTotalMinutes = bookingHour * 60 + bookingMinute;
       const slotStartTotalMinutes = startHour * 60 + startMinute;
-      const isAfterSlotStart =
-        isSameDate && bookingTotalMinutes > slotStartTotalMinutes;
+      let isAfterSlotStart = false;
+      if (isSameDay) {
+        isAfterSlotStart = bookingTotalMinutes > slotStartTotalMinutes;
+      }
       console.log('=============================');
       console.log(`Booking ID         ➔ ${booking.id}`);
       console.log(
@@ -314,7 +318,7 @@ export class SchedulerJobNotificationService {
       console.log(`Slot Start Minutes ➔ ${slotStartTotalMinutes}`);
       console.log(`Tanggal Slot       ➔ ${slotDateJakarta.toDateString()}`);
       console.log(`Tanggal Sekarang   ➔ ${nowJakarta.toDateString()}`);
-      console.log(`Tanggal Sama?      ➔ ${isSameDate}`);
+      console.log(`Tanggal Booking dan Tanggal Hari ini?      ➔ ${isSameDay}`);
       console.log(`isAfterSlotStart   ➔ ${isAfterSlotStart}`);
       console.log('=============================');
 
